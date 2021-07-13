@@ -6,7 +6,7 @@
 
 - name: "Remove HAProxy"
   include_tasks:
-    file: tasks/server/remote/haproxy/remove.yml
+    file: tasks/server/remote/haproxy/main.yml
     apply:
       tags:
         - haproxy
@@ -23,7 +23,7 @@
 
 - name: "Remove DNSmasq"
   include_tasks:
-    file: tasks/server/remote/dnsmasq/remove.yml
+    file: tasks/server/remote/dnsmasq/install.yml
     apply:
       tags:
         - dnsmasq

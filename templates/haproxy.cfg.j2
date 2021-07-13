@@ -60,6 +60,12 @@ frontend api
   mode tcp
   default_backend api
 
+frontend registry
+  bind {{ crc_remote_haproxy_ip }}:5000
+  option tcplog
+  mode tcp
+  default_backend registry
+
 ##########
 # Backends
 ##########
@@ -84,6 +90,13 @@ backend api
   option ssl-hello-chk
   #option httpchk GET /healthz HTTP/1.1\r\nHost:\ {{ crc_server_ip }}
   server crc {{ crc_server_ip }} check port 6443
+
+backend registry
+  mode tcp
+  balance roundrobin
+  option ssl-hello-chk
+  #option httpchk GET /healthz HTTP/1.1\r\nHost:\ {{ crc_server_ip }}
+  server crc {{ crc_server_ip }} check port 5000
 
 listen stats
   bind {{ crc_remote_haproxy_ip }}:1936

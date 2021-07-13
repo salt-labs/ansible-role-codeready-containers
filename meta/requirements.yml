@@ -1,0 +1,12 @@
+---
+##################################################
+# Requirements
+##################################################
+
+collections:
+  - name: community.general
+    type: galaxy
+    source: https://galaxy.ansible.com
+    version: "3.2.0"
+
+roles: []

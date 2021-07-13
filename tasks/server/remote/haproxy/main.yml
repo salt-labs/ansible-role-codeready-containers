@@ -1,0 +1,175 @@
+---
+
+#########################
+# Tasks (Remote HAProxy)
+#########################
+
+- name: "HAProxy: Packages"
+  block:
+
+    - name: "Check if Firewalld installed"
+      package:
+        name: firewalld
+        state: present
+      check_mode: True
+      ignore_errors: True
+      register: firewalld_installed
+
+    - name: "{{ type }} Firewalld package"
+      package:
+        name:
+          - firewalld
+        state: "{{ state }}"
+      when: >
+        state == 'Install' or
+        not firewalld_installed succeeded
+
+    - name: "{{ type }} HAProxy package"
+      package:
+        name:
+          - haproxy
+        state: "{{ state }}"
+
+  when:
+    - type is defined
+    - state is defined
+
+- name: "HAProxy: Firewall Ports"
+  block:
+
+    - name: "Start Firewalld"
+      service:
+        name: firewalld
+        state: started
+        enabled: True
+      when:
+        - type == 'Install'
+
+    - name: "Open Firewall Ports"
+      set_fact:
+        verb: "Open"
+      when:
+        - type == "Install"
+        - state is defined
+
+    - name: "Close Firewall Ports"
+      set_fact:
+        verb: "Close"
+      when:
+        - type == "Remove"
+        - state is defined
+
+    - name: "{{ type }} TCP Port 80 (HTTP)"
+      ansible.posix.firewalld:
+        port: 80/tcp
+        permanent: True
+        state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
+      notify:
+        - "Reload Firewalld"
+
+    - name: "{{ type }} TCP Port 443 (HTTPS)"
+      ansible.posix.firewalld:
+        port: 443/tcp
+        permanent: True
+        state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
+      notify:
+        - "Reload Firewalld"
+
+    - name: "{{ type }} TCP Port 6443 (Kubernetes)"
+      ansible.posix.firewalld:
+        port: 6443/tcp
+        permanent: True
+        state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
+      notify:
+        - "Reload Firewalld"
+
+    - name: "{{ type }} TCP Port 1936 (HAProxy Stats)"
+      ansible.posix.firewalld:
+        port: 1936/tcp
+        permanent: True
+        state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
+      notify:
+        - "Reload Firewalld"
+
+    - name: "{{ type }} TCP Port 5000 (Image Registry)"
+      ansible.posix.firewalld:
+        port: 5000/tcp
+        permanent: True
+        state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
+        notify:
+          - "Reload Firewalld"
+
+    - name: "{{ type }} SELinux Port definition for TCP port 6443"
+      community.general.seport:
+        ports: 6443
+        proto: tcp
+        reload: True
+        setype: http_port_t
+        state: "{{ state }}"
+
+    - name: "{{ type }} SELinux Port definition for TCP port 1936"
+      community.general.seport:
+        ports: 1936
+        proto: tcp
+        reload: True
+        setype: http_port_t
+        state: "{{ state }}"
+
+    - name: "{{ type }} SELinux Port definition for TCP port 5000"
+      community.general.seport:
+        ports: 5000
+        proto: tcp
+        reload: True
+        setype: http_port_t
+        state: "{{ state }}"
+
+  when:
+    - type is defined
+    - state is defined
+    - type == 'Install'
+
+- name: "HAProxy: Configuration"
+  block:
+
+    - name: "Determine CRC IP address"
+      command:
+        argv:
+          - "crc"
+          - "ip"
+      become: False
+      become_user: "{{ crc_server_user_crc }}"
+      register: crc_server_ip_address
+      check_mode: False
+
+    - name: "Set CRC IP address facts"
+      set_fact:
+        crc_server_ip: "{{ crc_server_ip_address.stdout | default('NONE') }}"
+        crc_remote_haproxy_ip: "{{ ansible_facts.default_ipv4.address | default('NONE') }}"
+
+    - name: Display CRC IP address facts
+      ansible.builtin.debug:
+        msg:
+          - "CRC IPv4: {{ crc_server_ip }}"
+          - "HAProxy IPv4: {{ crc_remote_haproxy_ip }}"
+
+    - name: "Configure HAProxy"
+      template:
+        src: haproxy.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+        owner: root
+        group: root
+      notify:
+        - "Reload HAProxy"
+
+    - name: "Start HAProxy"
+      service:
+        name: haproxy
+        state: started
+        enabled: True
+      when:
+        - not ansible_check_mode
+
+  when:
+    - type is defined
+    - state is defined
+    - type == 'Install'

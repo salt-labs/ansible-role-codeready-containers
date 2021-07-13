@@ -6,7 +6,7 @@
 
 - name: "Install HAProxy"
   include_tasks:
-    file: tasks/server/remote/haproxy/install.yml
+    file: tasks/server/remote/haproxy/main.yml
     apply:
       tags:
         - haproxy
