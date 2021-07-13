@@ -1,28 +1,18 @@
 Role Name
 =========
 
-Ansible role that installs CodeReady Containers and optionally installs Ansible Tower into the CodeReady Containers OpenShift cluster.
+Ansible role that installs CodeReady Containers.
 
 Requirements
 ------------
 
 This role has the following requirements:
     - Access to the URL to download the CodeReady release
-    - Access to the URL to download the Ansible Tower release
 
 Role Variables
 --------------
 
-A summary of default variables and descriptions is below. Further comments are available in `defaults/main.yml`.
-
-| Name | Description | Default |
-| :--- | :---------- | :------ |
-| | | |
-| | | |
-| | | |
-| | | |
-| | | |
-| | | |
+Descriptions on the available variables can be found in the `defaults/main` directory.
 
 Dependencies
 ------------
@@ -33,33 +23,13 @@ Example Playbook
 ----------------
 
 ```yaml
-- hosts: servers
-
-roles:
-  - install-codeready-containers
-
-vars:
-crc_packages_state: present
-crc_remove_packages: true
-crc_enable_service: true
-crc_enable_selinux: true
-crc_copy_templates: true
-crc_firewall_configure: true
-crc_firewall_rules:
-    - service: ssh
-    - port: 3389
-crc_users:
-    - user: devops
-    group: docker
-crc_selinux_booleans:
-    - name: ftp_home_dir
-    state: true
-    persistent: true
-tags: crc
+TODO: PROVIDE EXAMPLE PLAYBOOKS
 ```
 
 Usage Scenarios
 ---------------
+
+# TODO: COMPLETE DOCUMENTATION EXAMPLES
 
 | Scenario | Example |
 | :------- | :------ |
@@ -69,9 +39,6 @@ Usage Scenarios
 | Install CodeReady Containers and configure OC CLI only | |
 | Remove CodeReady Containers | |
 | Remove CodeReady Containers and perform a fresh Install | |
-
-# TODO: COMPLETE DOCUMENTATION EXAMPLES
-
 
 **Start a deployment**
 ```
@@ -115,9 +82,12 @@ ansible-playbook  -i inventory deploy-crc.yml --extra-vars "delete_crc_deploymen
 
 Debug info
 ----------
+
 * During setup the new CodeReady Containers release tasks
-  * `tail -f /tmp/crc_setup.log`
-  * or `tail -f  tail -f ~/.crc/crc.log`
+
+```bash
+tail -F ~/.crc/crc.log
+```
 
 Flags
 -----
@@ -130,7 +100,7 @@ Apache 2.0
 Author Information
 ------------------
 
-Red Hat Community of Practice & staff of the Red Hat Open Innovation Labs.
+Salt Labs
 
 Developer Information
 ------------------

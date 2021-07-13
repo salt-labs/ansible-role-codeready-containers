@@ -40,11 +40,9 @@ crc_server_release_url: "https://mirror.openshift.com/pub/openshift-v4/clients/c
 crc_server_release_name: crc-linux-{{ arch }}.tar.xz
 
 # Post install variables
-
 crc_server_ip: ""
 
 # Templates config options
-
 crc_server_config_consent_telemetry: "yes"
 crc_server_config_cpus: "4"
 crc_server_config_disable_update_check: "false"

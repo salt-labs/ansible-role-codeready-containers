@@ -3,7 +3,7 @@
 # Vault
 #########################
 
-# This is an example of the secrets you would encrypt in your vault.
+# NOTE: This is an example of the secrets you would encrypt in your vault.
 
 vault_crc:
   # This pull secret can be obtained from:
