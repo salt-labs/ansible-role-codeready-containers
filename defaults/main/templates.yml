@@ -1,0 +1,14 @@
+---
+
+#########################
+# Templates
+#########################
+
+# If enabled, copies jinja templates
+crc_templates: True
+
+# User customizable templates to copy
+crc_templates_copy_user: []
+#  - name: descriptive_name
+#    src: crc.j2
+#    dest: /tmp/crc.config

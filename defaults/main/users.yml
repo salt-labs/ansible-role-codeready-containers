@@ -1,0 +1,18 @@
+---
+
+#########################
+# Users
+#########################
+
+# If enabled, configures users and groups
+crc_users: True
+
+# Users to enable CRC access for
+crc_users_enable: []
+
+# List of groups all CRC users get
+crc_groups:
+  - docker
+  - libvirt
+  - kvm
+  - crc

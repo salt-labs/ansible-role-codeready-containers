@@ -1,0 +1,15 @@
+---
+
+#########################
+# SELinux
+#########################
+
+# If enabled, configures SELinux
+crc_selinux: False
+
+crc_selinux_policy: targeted
+crc_selinux_state: enforcing
+
+crc_selinux_booleans_user: []
+#  - name: ftp_home_dir
+#    persistent: True

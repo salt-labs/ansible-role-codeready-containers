@@ -1,0 +1,83 @@
+---
+#########################
+# Tasks (Global)
+#########################
+
+- name: Record Ansible Facts
+  copy:
+    content: "{{ vars }}"
+    dest: "/tmp/ansible-facts.json"
+  changed_when: False
+  check_mode: False
+  when:
+    - crc_enable_debug | bool
+
+- name: Assert supported distributions
+  assert:
+    that:
+      - ( ansible_facts.distribution == "RedHat" and ( ansible_facts.distribution_major_version >= '8' ) )
+        or
+        ( ansible_facts.distribution == "CentOS" and ( ansible_facts.distribution_major_version >= "8" ) )
+        or
+        ( ansible_facts.distribution == "Fedora" and ( ansible_facts.distribution_major_version >= "31" ) )
+
+- name: Include OS specific variables
+  include_vars: "{{ osvars }}"
+  vars:
+    osvars_:
+      files:
+        - "{{ ansible_facts.os_family }}-{{ ansible_facts.distribution }}-{{ ansible_facts.distribution_version }}.yml"
+        - "{{ ansible_facts.os_family }}-{{ ansible_facts.distribution }}.yml"
+        - "{{ ansible_facts.os_family }}.yml"
+      paths:
+        - ../vars
+    osvars: "{{ lookup('first_found', osvars_, errors='ignore') }}"
+  when:
+    - (osvars | length > 0)
+
+- name: Determine CodeReady Containers user
+  command:
+    argv:
+      - "whoami"
+  become: False
+  register: whoami_crc
+  check_mode: False
+
+- name: Determine Controller user
+  command:
+    argv:
+      - "whoami"
+  become: False
+  register: whoami_controller
+  check_mode: False
+  delegate_to: localhost
+
+- name: Set CodeReady Containers Facts
+  set_fact:
+    crc_server_user_crc: "{{ whoami_crc.stdout }}"
+    crc_server_user_controller: "{{ whoami_controller.stdout }}"
+    #crc_controller_host: "{{ lookup('pipe','hostname') | default('localhost') }}"
+    crc_controller_host: "{{ groups['ansible_controller'][0] }}"
+  check_mode: False
+
+- name: "Configure CodeReady Containers (Server)"
+  include_tasks:
+    file: tasks/server/main.yml
+    apply:
+      tags:
+        - server
+  when:
+    - crc_server | bool
+  vars:
+    family: server
+
+- name: "Configure CodeReady Containers (Client)"
+  include_tasks:
+    file: tasks/client/main.yml
+    apply:
+      tags:
+        - client
+  when:
+    - crc_client | bool
+  vars:
+    family: client

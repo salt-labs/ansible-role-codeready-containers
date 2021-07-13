@@ -1,0 +1,32 @@
+---
+
+#########################
+# Remove
+#########################
+
+- name: Removal Tasks
+  block:
+
+    - name: Remove CRC {{ family }} binary oc
+      file:
+        path: "/usr/local/bin/oc"
+        state: absent
+      become: True
+
+    - name: Remove CRC {{ family }} binary kubectl
+      file:
+        path: "/usr/local/bin/kubectl"
+        state: absent
+      become: True
+
+    - name: Remove CRC {{ family }} working directory
+      file:
+        path: "{{ crc_workdir }}/{{ family }}"
+        state: absent
+      become: True
+
+  when:
+    - family is defined
+    - type is defined
+    - type == "Remove"
+    - state is defined

@@ -1,0 +1,26 @@
+#########################
+{{ ansible_managed | comment }}
+#########################
+
+# DNSMasq configuration for CRC client
+
+# Bind to interfaces
+bind-interfaces
+
+# Define the cache size
+cache-size=1000
+
+# Enable reading from /etc/hosts
+addn-hosts=/etc/hosts
+
+# Forward all Kubernetes API requests (DNS)
+#server=/crc.testing/{{ crc_remote_dnsmasq_ip }}
+
+# Forward all Kubernetes API requests (HTTP)
+address=/crc.testing/{{ crc_remote_dnsmasq_ip }}
+
+# Forward all Kubernetes APP requests (DNS)
+#server=/apps-crc.testing/{{ crc_remote_dnsmasq_ip }}
+
+# Forward all Kubernetes APP requests (HTTP)
+address=/apps-crc.testing/{{ crc_remote_dnsmasq_ip }}

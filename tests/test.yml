@@ -1,0 +1,9 @@
+---
+
+- hosts: localhost
+  remote_user: root
+  vars:
+    - crc_server: True
+    - crc_client: True
+  roles:
+    - config-crc

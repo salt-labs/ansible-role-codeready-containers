@@ -1,0 +1,44 @@
+---
+
+#########################
+# Packages (Variables)
+#########################
+
+_crc_packages_remove:
+  all: []
+  CentOS_7: []
+  RedHat_7: []
+  CentOS_8: []
+  RedHat_8: []
+  Fedora_31: []
+  Fedora_32: []
+  Fedora_33: []
+  Fedora_34: []
+
+_crc_packages_prereq:
+  all:
+    - libvirt
+    - libvirt-daemon
+    - libvirt-daemon-kvm
+    - libvirt-daemon-qemu
+    - NetworkManager
+    - qemu-kvm
+  CentOS_7: []
+  RedHat_7: []
+  CentOS_8: []
+  RedHat_8: []
+  Fedora_31: []
+  Fedora_32: []
+  Fedora_33: []
+  Fedora_34: []
+
+_crc_packages_install:
+  all: []
+  CentOS_7: []
+  RedHat_7: []
+  CentOS_8: []
+  RedHat_8: []
+  Fedora_31: []
+  Fedora_32: []
+  Fedora_33: []
+  Fedora_34: []

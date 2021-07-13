@@ -1,0 +1,39 @@
+---
+
+#########################
+# Tasks (Remote Remove)
+#########################
+
+- name: "Remove HAProxy"
+  include_tasks:
+    file: tasks/server/remote/haproxy/remove.yml
+    apply:
+      tags:
+        - haproxy
+        - remove
+  vars:
+    type: Remove
+    state: absent
+  when:
+    - crc_server_remove | bool
+    - crc_remote_haproxy | bool
+  tags:
+    - haproxy
+    - remove
+
+- name: "Remove DNSmasq"
+  include_tasks:
+    file: tasks/server/remote/dnsmasq/remove.yml
+    apply:
+      tags:
+        - dnsmasq
+        - remove
+  vars:
+    type: Remove
+    state: absent
+  when:
+    - crc_server_remove | bool
+    - crc_remote_dnsmasq | bool
+  tags:
+    - dnsmasq
+    - remove

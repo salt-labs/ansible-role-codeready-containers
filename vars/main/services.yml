@@ -1,0 +1,18 @@
+---
+
+#########################
+# Service (Variables)
+#########################
+
+_crc_services_enable:
+  all:
+    - libvirtd
+    - NetworkManager
+  CentOS_7: []
+  RedHat_7: []
+  CentOS_8: []
+  RedHat_8: []
+  Fedora_31: []
+  Fedora_32: []
+  Fedora_33: []
+  Fedora_34: []

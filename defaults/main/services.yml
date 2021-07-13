@@ -1,0 +1,12 @@
+---
+
+#########################
+# Services
+#########################
+
+# If enabled, configures and enables services
+crc_services: True
+
+# User customizable services to enable
+crc_services_enable_user: []
+# - libvirtd

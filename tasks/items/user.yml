@@ -1,0 +1,30 @@
+---
+
+#########################
+# User
+#########################
+
+- name: Configure Users and Groups
+  block:
+
+    # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/group_module.html
+    - name: "{{ type }} group {{ group }}"
+      group:
+        name: "{{ group }}"
+        state: "{{ state }}"
+      loop: "{{ crc_groups }}"
+      loop_control:
+        loop_var: group
+
+    # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/user_module.html
+    - name: "{{ type }} user {{ user }}"
+      user:
+        name: "{{ user }}"
+        state: "{{ state }}"
+        groups: "{{ group }}"
+        append: true
+      loop: "{{ crc_groups }}"
+      loop_control:
+        loop_var: group
+
+  become: true

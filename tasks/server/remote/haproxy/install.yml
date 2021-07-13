@@ -1,0 +1,121 @@
+---
+
+#########################
+# Tasks (Remote HAProxy Install)
+#########################
+
+- name: HAProxy Installation Tasks
+  block:
+
+    - name: "{{ type }} HAProxy packages"
+      package:
+        name:
+          - haproxy
+          - firewalld
+        state: "{{ state }}"
+
+    - name: Start Firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: True
+
+    - name: Open TCP Port 80 (HTTP)
+      ansible.posix.firewalld:
+        port: 80/tcp
+        permanent: True
+        state: enabled
+      notify:
+        - "Reload Firewalld"
+        - "Restart Firewalld"
+
+    - name: Open TCP Port 443 (HTTPS)
+      ansible.posix.firewalld:
+        port: 443/tcp
+        permanent: True
+        state: enabled
+      notify:
+        - "Reload Firewalld"
+        - "Restart Firewalld"
+
+    - name: Open TCP Port 6443 (Kubernetes)
+      ansible.posix.firewalld:
+        port: 6443/tcp
+        permanent: True
+        state: enabled
+      notify:
+        - "Reload Firewalld"
+        - "Restart Firewalld"
+
+    - name: Open TCP Port 1936 (HAProxy Stats)
+      ansible.posix.firewalld:
+        port: 1936/tcp
+        permanent: True
+        state: enabled
+      notify:
+        - "Reload Firewalld"
+        - "Restart Firewalld"
+
+    - name: Allow Kubernetes to use TCP port 6443
+      community.general.seport:
+        ports: 6443
+        proto: tcp
+        reload: True
+        setype: http_port_t
+        state: "{{ state }}"
+
+    - name: Allow HAProxy to use TCP port 1936
+      community.general.seport:
+        ports: 1936
+        proto: tcp
+        reload: True
+        setype: http_port_t
+        state: "{{ state }}"
+
+    - name: Determine CRC IP address
+      command:
+        argv:
+          - "crc"
+          - "ip"
+      become: False
+      become_user: "{{ crc_server_user_crc }}"
+      register: crc_server_ip_address
+      check_mode: False
+
+    - name: Set CRC IP address facts
+      set_fact:
+        crc_server_ip: "{{ crc_server_ip_address.stdout | default('NONE') }}"
+        crc_remote_haproxy_ip: "{{ ansible_facts.default_ipv4.address | default('NONE') }}"
+
+    - name: Display CRC IP address facts
+      ansible.builtin.debug:
+        msg:
+          - "CRC IPv4: {{ crc_server_ip }}"
+          - "HAProxy IPv4: {{ crc_remote_haproxy_ip }}"
+
+    - name: Configure HAProxy
+      template:
+        src: haproxy.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+        owner: root
+        group: root
+      notify:
+        - "Reload HAProxy"
+
+    - name: Start HAProxy
+      service:
+        name: haproxy
+        state: started
+        enabled: True
+      when:
+        - not ansible_check_mode
+
+    - name: Reload Firewalld
+      service:
+        name: firewalld
+        state: reloaded
+
+  when:
+    - type is defined
+    - type == "Install"
+    - state is defined

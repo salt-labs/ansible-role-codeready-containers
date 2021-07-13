@@ -1,0 +1,32 @@
+---
+
+#########################
+# Service
+#########################
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/shell_module.html
+- name: Disable service {{ service }}
+  shell: |
+    if systemctl is-enabled --quiet {{ service }};
+    then
+      systemctl disable {{ service }} ;
+      echo "SERVICE_DISABLED";
+    else
+      echo "SERVICE_NOT_PRESENT";
+    fi
+  register: output
+  changed_when: "'SERVICE_DISABLED' in output.stdout"
+  when:
+    - type == "Remove"
+    - not ansible_check_mode
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/systemd_module.html
+- name: "Enable service {{ service }}"
+  systemd:
+    name: "{{ service }}"
+    enabled: "{{ enabled }}"
+    state: "{{ state }}"
+  become: true
+  when:
+    - type == "Install"
+    - not ansible_check_mode

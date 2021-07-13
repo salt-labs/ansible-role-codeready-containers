@@ -1,0 +1,44 @@
+---
+
+#########################
+# Repository (Variables)
+#########################
+
+_crc_repos_create:
+  all: []
+  CentOS_7: []
+  RedHat_7: []
+  CentOS_8: []
+  RedHat_8: []
+  Fedora_31: []
+  Fedora_32: []
+  Fedora_33: []
+  Fedora_34: []
+
+_crc_repos_download:
+  all: []
+  CentOS_7: []
+  RedHat_7: []
+  CentOS_8: []
+  RedHat_8: []
+  Fedora_31: []
+  Fedora_32: []
+  Fedora_33: []
+  Fedora_34: []
+
+_crc_repos_packages:
+  all: []
+  CentOS_7:
+    - name: epel-release
+  CentOS_8:
+    - name: epel-release
+  RedHat_7:
+    - name: epel-release
+      url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+  RedHat_8:
+    - name: epel-release
+      url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm"
+  Fedora_31: []
+  Fedora_32: []
+  Fedora_33: []
+  Fedora_34: []

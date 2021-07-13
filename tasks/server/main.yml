@@ -1,0 +1,93 @@
+---
+
+#########################
+# Tasks (Server)
+#########################
+
+- name: Disable remote access to CodeReady Containers {{ family }}
+  include_tasks:
+    file: tasks/server/remote/remove.yml
+    apply:
+      tags:
+        - remote
+  vars:
+    type: Remove
+    state: absent
+  when:
+    - crc_server_remove | bool
+    - crc_remote | bool
+  tags:
+    - remove
+    - remote
+
+- name: Remove CodeReady Containers {{ family }}
+  include_tasks:
+    file: tasks/server/remove.yml
+    apply:
+      tags:
+        - remove
+  vars:
+    type:  Remove
+    state: absent
+  when:
+    - crc_server_remove | bool
+  tags:
+    - remove
+
+- name: Prepare CodeReady Containers {{ family }}
+  include_tasks:
+    file: tasks/server/prepare.yml
+    apply:
+      tags:
+        - prepare
+  vars:
+    type: Install
+    state: present
+  when:
+    - crc_server_install | bool
+  tags:
+    - prepare
+
+- name: Install CodeReady Containers {{ family }}
+  include_tasks:
+    file: tasks/server/install.yml
+    apply:
+      tags:
+        - install
+  vars:
+    type: Install
+    state: present
+  when:
+    - crc_server_install | bool
+  tags:
+    - install
+
+- name: Enable remote access to CodeReady Containers {{ family }}
+  include_tasks:
+    file: tasks/server/remote/install.yml
+    apply:
+      tags:
+        - remote
+  vars:
+    type: Install
+    state: present
+  when:
+    - crc_server_install | bool
+    - crc_remote | bool
+  tags:
+    - install
+    - remote
+
+- name: Display CodeReady Containers {{ family }} information
+  include_tasks:
+    file: tasks/server/information.yml
+    apply:
+      tags:
+        - information
+  vars:
+    type: Install
+    state: present
+  when:
+    - crc_server_install | bool
+  tags:
+    - information

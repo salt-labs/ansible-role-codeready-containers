@@ -1,0 +1,33 @@
+---
+
+#########################
+# Tasks (Client)
+#########################
+
+- name: Remove CodeReady Containers {{ family }}
+  include_tasks:
+    file: tasks/client/remove.yml
+    apply:
+      tags:
+        - remove
+  vars:
+    type:  Remove
+    state: absent
+  when:
+    - crc_client_remove | bool
+  tags:
+    - remove
+
+- name: Install CodeReady Containers {{ family }}
+  include_tasks:
+    file: tasks/client/install.yml
+    apply:
+      tags:
+        - install
+  vars:
+    type: Install
+    state: present
+  when:
+    - crc_client_install | bool
+  tags:
+    - install

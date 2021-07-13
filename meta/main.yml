@@ -1,0 +1,35 @@
+---
+
+galaxy_info:
+
+  description: Install and configure CodeReady Containers
+
+  author: Salt Labs
+  company: Salt Labs
+
+  issue_tracker_url: https://github.com/salt-labs/ansible-role-codeready-containers/issues
+
+  license: Apache-2.0
+
+  min_ansible_version: "2.9"
+
+  platforms:
+
+    - name: EL
+      versions:
+        - "8"
+
+    - name: Fedora
+      versions:
+      - "31"
+      - "32"
+      - "33"
+      - "34"
+
+  galaxy_tags:
+    - codeready
+    - openshift
+    - containers
+    - ansible-tower
+
+dependencies: []

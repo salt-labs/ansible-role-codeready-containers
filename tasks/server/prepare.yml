@@ -1,0 +1,285 @@
+---
+
+#########################
+# Configure
+#########################
+
+##########
+# Repositories
+##########
+
+- name: Repositories
+  block:
+
+    - name: "{{ type }} repositories (create method)"
+      include_tasks: tasks/items/repository/create.yml
+      loop: "{{ crc_repos_create }}"
+      loop_control:
+        loop_var: repo
+      when:
+        - crc_repos_create is defined
+      tags:
+        - repository_create
+
+    - name: "{{ type }} repositories (download method)"
+      include_tasks: tasks/items/repository/download.yml
+      loop: "{{ crc_repos_download }}"
+      loop_control:
+        loop_var: repo
+      when:
+        - crc_repos_download is defined
+      tags:
+        - repository_download
+
+    - name: "{{ type }} repositories (package method)"
+      include_tasks: tasks/items/repository/install.yml
+      loop: "{{ crc_repos_packages }}"
+      loop_control:
+        loop_var: repo
+      when:
+        - crc_repos_install is defined
+      tags:
+        - repository_install
+
+  when:
+    - crc_repos | bool
+    - type is defined
+    - state is defined
+  tags:
+    - repos
+
+##########
+# Packages
+##########
+
+- name: Packages
+  block:
+
+    - name: Remove packages
+      include_tasks: tasks/items/package.yml
+      loop: "{{ crc_packages_remove }}"
+      loop_control:
+        loop_var: pkg
+      when:
+        - crc_packages_remove is defined
+        - type == "Install"
+      vars:
+        state: absent
+
+    #- name: Install removed packages
+    #  include_tasks: tasks/items/package.yml
+    #  loop: "{{ crc_packages_remove }}"
+    #  loop_control:
+    #    loop_var: pkg
+    #  when:
+    #    - crc_packages_remove is defined
+    #    - type == "Remove"
+    #  vars:
+    #    state: present
+
+    - name: "{{ type }} pre-requisite packages"
+      include_tasks: tasks/items/package.yml
+      loop: "{{ crc_packages_prereq }}"
+      loop_control:
+        loop_var: pkg
+      when:
+        - crc_packages_prereq is defined
+
+    - name: "{{ type }} packages"
+      include_tasks: tasks/items/package.yml
+      loop: "{{ crc_packages_install }}"
+      loop_control:
+        loop_var: pkg
+      when:
+        - crc_packages_install is defined
+
+  when:
+    - crc_packages | bool
+    - type is defined
+    - state is defined
+  tags:
+    - pkgs
+
+##########
+# Services
+##########
+
+- name: Services
+  block:
+
+    - name: "{{ type }} services"
+      include_tasks: tasks/items/service.yml
+      loop: "{{ crc_services_enable }}"
+      loop_control:
+        loop_var: service
+      vars:
+        state: started
+        enabled: True
+      when:
+        - crc_services_enable is defined
+        - type == "Install"
+
+  when:
+    - crc_services | bool
+    - type is defined
+    - state is defined
+  tags:
+    - services
+
+##########
+# Templates
+##########
+
+- name: Templates
+  block:
+
+    - name: "{{ type }} template"
+      include_tasks: tasks/items/template.yml
+      loop: "{{ crc_templates_copy }}"
+      loop_control:
+        loop_var: template
+      when:
+        - crc_templates_copy is defined
+
+  when:
+    - crc_templates | bool
+    - type is defined
+    - state is defined
+  tags:
+    - templates
+
+##########
+# Firewalld
+##########
+
+- name: Firewalld
+  block:
+
+    - name: "{{ type }} firewalld package"
+      include_tasks: tasks/items/package.yml
+      loop:
+        - firewalld
+      loop_control:
+        loop_var: pkg
+      when:
+        - type == "Install"
+
+    - name: Start firewalld service
+      include_tasks: tasks/items/service.yml
+      loop:
+        - firewalld
+      loop_control:
+        loop_var: service
+      vars:
+        state: started
+        enabled: True
+      when:
+        - type == "Install"
+
+    - name: "{{ type }} firewalld rules"
+      include_tasks: tasks/items/firewalld.yml
+      loop: "{{ crc_firewalld_rules }}"
+      loop_control:
+        loop_var: rule
+      vars:
+        state: enabled
+      when:
+        - crc_firewalld_rules is defined
+        - type == "Install"
+
+    - name: "{{ type }} firewalld rules"
+      include_tasks: tasks/items/firewalld.yml
+      loop: "{{ crc_firewalld_rules }}"
+      loop_control:
+        loop_var: rule
+      vars:
+        state: disabled
+      when:
+        - crc_firewalld_rules is defined
+        - type == "Remove"
+
+  when:
+    - crc_firewalld | bool
+    - type is defined
+    - state is defined
+  tags:
+    - firewalld
+
+##########
+# SELinux
+##########
+
+- name: SELinux
+  block:
+
+    - name: "{{ type }} selinux package"
+      include_tasks: tasks/items/package.yml
+      loop:
+        - libselinux
+      loop_control:
+        loop_var: pkg
+      when:
+        - type == "Install"
+
+    - name: Set SELinux policy
+      selinux:
+        policy: "{{ crc_selinux_policy }}"
+        state: "{{ crc_selinux_state }}"
+      when:
+        - type == "Install"
+
+    - name: "{{ type }} selinux booleans"
+      include_tasks: tasks/items/selinux.yml
+      loop: "{{ crc_selinux_booleans }}"
+      loop_control:
+        loop_var: sebool
+      vars:
+        state: yes
+      when:
+        - crc_selinux_booleans is defined
+        - type == "Install"
+
+    - name: "{{ type }} selinux booleans"
+      include_tasks: tasks/items/selinux.yml
+      loop: "{{ crc_selinux_booleans }}"
+      loop_control:
+        loop_var: sebool
+      vars:
+        state: no
+      when:
+        - crc_selinux_booleans is defined
+        - type == "Remove"
+
+  when:
+    - crc_selinux | bool
+    - type is defined
+    - state is defined
+  tags:
+    - selinux
+
+##########
+# Users and Groups
+##########
+
+- name: Users and Groups
+  block:
+
+    - name: "{{ type }} Users to Groups"
+      include_tasks: tasks/items/user.yml
+      loop: "{{ crc_users_enable }}"
+      loop_control:
+        loop_var: user
+
+  when:
+    - crc_users | bool
+    - type is defined
+    - state is defined
+  tags:
+    - users
+
+##########
+# Flush Handlers
+##########
+
+- name: Flush Handlers
+  meta: flush_handlers

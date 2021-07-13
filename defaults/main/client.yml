@@ -1,0 +1,21 @@
+---
+#########################
+# Client
+#########################
+
+# Global flag to disable all client tasks (useful for testing)
+crc_client: True
+
+# If enabled, performs installation of the CRC client (OpenShift CLI)
+crc_client_install: True
+
+# If enabled, removes existing installation of CRC client (OpenShift CLI)
+crc_client_remove: False
+
+# User configurable release details
+
+crc_client_release: "4.7.18"
+crc_client_release_version: "4.7.18"
+crc_client_release_sha: "51fb150c3f5096cc8635e02a80b7cd0aa257b801f65c96b77d2d72329463efc6"
+crc_client_release_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp"
+crc_client_release_name: "openshift-client-linux-{{ crc_client_release_version }}.tar.gz"

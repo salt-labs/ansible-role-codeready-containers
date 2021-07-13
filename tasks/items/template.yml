@@ -1,0 +1,24 @@
+---
+
+#########################
+# Template
+#########################
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/template_module.html
+- name: "Install templated file {{ template.name }}"
+  template:
+    src: "{{ template.src }}"
+    dest: "{{ template.dest }}"
+    force: yes
+  become: true
+  when:
+    - type == "Install"
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/file_module.html
+- name: "Remove templated file {{ template.name }}"
+  file:
+    path: "{{ template.dest }}"
+    state: "{{ state }}"
+  become: true
+  when:
+    - type == "Remove"

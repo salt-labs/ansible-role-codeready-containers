@@ -1,0 +1,124 @@
+---
+
+#########################
+# Variables
+#########################
+
+##########
+# Repos
+##########
+
+# Repositories to create
+__crc_repos_create: "{{ _crc_repos_create['all']
+  | union ( _crc_repos_create[os]
+  | default([]) ) }}"
+
+# Append any user provided to create
+crc_repos_create: "{{ __crc_repos_create
+  | union ( crc_repos_create_user
+  | default([]) ) }}"
+
+# Repositories to download
+__crc_repos_download: "{{ _crc_repos_download['all']
+  | union ( _crc_repos_download[os]
+  | default([]) ) }}"
+
+# Append any user provided repositories to download
+crc_repos_download: "{{ __crc_repos_download
+  | union ( crc_repos_download_user
+  | default([]) ) }}"
+
+# Repositories to install via package
+__crc_repos_packages: "{{ _crc_repos_packages['all']
+  | union ( _crc_repos_packages[os]
+  | default([]) ) }}"
+
+# Append any user provided repositories to install via package
+crc_repos_packages: "{{ __crc_repos_packages
+  | union ( crc_repos_packages_user
+  | default([]) ) }}"
+
+##########
+# Packages
+##########
+
+# All packages to remove
+__crc_packages_remove: "{{ _crc_packages_remove['all']
+  | union ( _crc_packages_remove[os]
+  | default([]) ) }}"
+
+# Append any user provided packages to remove
+crc_packages_remove: "{{ __crc_packages_remove
+  | union ( crc_packages_remove_user
+  | default([]) ) }}"
+
+# All prereq packages to install
+__crc_packages_prereq: "{{ _crc_packages_prereq['all']
+  | union ( _crc_packages_prereq[os]
+  | default([]) ) }}"
+
+# Append any user provided pre-requisite packages to install
+crc_packages_prereq: "{{ __crc_packages_prereq
+  | union ( crc_packages_prereq_user
+  | default([]) ) }}"
+
+# All packages to install
+__crc_packages_install: "{{ _crc_packages_install['all']
+  | union ( _crc_packages_install[os]
+  | default([]) ) }}"
+
+# Append any user provided packages to install
+crc_packages_install: "{{ __crc_packages_install
+  | union ( crc_packages_install_user
+  | default([]) ) }}"
+
+##########
+# Services
+##########
+
+# All Services to enable
+__crc_services_enable: "{{ _crc_services_enable['all']
+  | union ( _crc_services_enable[os]
+  | default([]) ) }}"
+
+# Append any user provided Services to enable
+crc_services_enable: "{{ __crc_services_enable
+  | union ( crc_services_enable_user
+  | default([]) ) }}"
+
+##########
+# Templates
+##########
+
+# All Templates to copy
+__crc_templates_copy: "{{ _crc_templates_copy['all']
+  | union ( _crc_templates_copy[os]
+  | default([]) ) }}"
+
+# Append any user provided Templates to copy
+crc_templates_copy: "{{ __crc_templates_copy
+  | union ( crc_templates_copy_user
+  | default([]) ) }}"
+
+##########
+# Firewalld
+##########
+
+# Append any user provided firewalld rules
+crc_firewalld_rules: "{{ _crc_firewalld_rules['all']
+  | union ( crc_firewalld_rules_user
+  | default([]) ) }}"
+
+##########
+# SELinux
+##########
+
+# All SELinux flags to enable
+__crc_selinux_booleans: "{{ _crc_selinux_booleans['all']
+  | union ( _crc_selinux_booleans[os]
+  | default([]) ) }}"
+
+# Append any user provided SELinux flags to enable
+crc_selinux_booleans: "{{ __crc_selinux_booleans
+  | union ( crc_selinux_booleans_user
+  | default([]) ) }}"

@@ -1,0 +1,19 @@
+---
+
+#########################
+# Remote
+#########################
+
+# If enabled, installs and configures HAProxy and DNSMasq locally for remote access (tag=remote)
+crc_remote: False
+
+# If enabled, executes the HAProxy tasks
+crc_remote_haproxy: True
+
+# If enabled, executes the DNSMasq tasks
+crc_remote_dnsmasq: True
+
+# Post install variables
+
+crc_remote_haproxy_ip: ""
+crc_remote_dnsmasq_ip: ""

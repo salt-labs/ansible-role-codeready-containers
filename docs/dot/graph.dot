@@ -1,0 +1,13 @@
+digraph "playbooks/codeready-containers/install-crc.yml "{
+	graph [concentrate=true ordering=in rankdir=LR ratio=fill]
+	edge [esep=5 sep=10]
+	"playbooks/codeready-containers/install-crc.yml" [id=root_node style=dotted]
+	subgraph "[role] install-codeready-containers "{
+		"[role] install-codeready-containers" [id="role_e63826e2-ecb5-4a17-bbba-4cc1443ee437"]
+	}
+	subgraph "Play #1: Install and configure CodeReady Containers (0) "{
+		"Play #1: Install and configure CodeReady Containers (0)" [color="#47731d" fontcolor="#ffffff" id="play_87f02b1a-d1b4-4db3-b697-4c22eb0019d2" shape=box style=filled tooltip=""]
+		"playbooks/codeready-containers/install-crc.yml" -> "Play #1: Install and configure CodeReady Containers (0)" [label=1 color="#47731d" fontcolor="#47731d" id="edge_b1cb9832-e570-419a-932f-c81ae717c512" style=bold]
+		"Play #1: Install and configure CodeReady Containers (0)" -> "[role] install-codeready-containers" [label=1 color="#47731d" fontcolor="#47731d" id="edge_f5b4cc59-4690-48c3-84a8-8c6f38c52007"]
+	}
+}

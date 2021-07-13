@@ -1,0 +1,40 @@
+---
+
+#########################
+# Tasks (Remote Install)
+#########################
+
+- name: "Install HAProxy"
+  include_tasks:
+    file: tasks/server/remote/haproxy/install.yml
+    apply:
+      tags:
+        - haproxy
+        - install
+  vars:
+    type: Install
+    state: present
+  when:
+    - crc_server_install | bool
+    - crc_remote_haproxy | bool
+  tags:
+    - haproxy
+    - install
+
+
+- name: "Install DNSmasq"
+  include_tasks:
+    file: tasks/server/remote/dnsmasq/install.yml
+    apply:
+      tags:
+        - dnsmasq
+        - install
+  vars:
+    type: Install
+    state: present
+  when:
+    - crc_server_install | bool
+    - crc_remote_dnsmasq | bool
+  tags:
+    - dnsmasq
+    - install

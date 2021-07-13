@@ -1,0 +1,29 @@
+---
+
+#########################
+# Firewalld
+#########################
+
+- name: Fail on service and port
+  fail:
+    msg: Firewalld only accepts providing a service or port, but not both at the same time.
+  when:
+    - rule.service is defined
+    - rule.port is defined
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/posix/firewalld_module.html
+- name: "{{ type }} firewalld rule {{ rule.name }}"
+  firewalld:
+    immediate: true
+    permanent: "{{ rule.permanent | default('true', true) }}"
+    port: "{{
+        (rule.port | string + '/' + rule.protocol | default('tcp') | lower)
+        if rule.port is defined else omit
+      }}"
+    service: "{{ rule.service if rule.service is defined else omit }}"
+    source: "{{ rule.source if rule.source is defined else omit }}"
+    state: "{{ state }}"
+    timeout: "{{ rule.timeout if rule.timeout is defined else omit }}"
+    zone: "{{ rule.zone if rule.zone is defined else omit }}"
+  become: true
+  notify: Reload Firewalld

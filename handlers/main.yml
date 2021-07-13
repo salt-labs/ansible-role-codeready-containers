@@ -1,0 +1,74 @@
+---
+
+#########################
+# Handlers
+#########################
+
+- name: Reboot Host
+  reboot:
+    msg: "Reboot initiated by Ansible"
+    connect_timeout: 5
+    reboot_timeout: 600
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: whoami
+  listen: "Reboot Host"
+  when:
+    - not ansible_check_mode
+    - ansible_host != crc_controller_host
+
+- name: Reload Firewalld
+  systemd:
+    name: firewalld
+    state: reloaded
+  listen: "Reload Firewalld"
+  when:
+    - not ansible_check_mode
+
+- name: Restart Firewalld
+  systemd:
+    name: firewalld
+    state: restarted
+  listen: "Restart Firewalld"
+  when:
+    - not ansible_check_mode
+
+- name: Reload NetworkManager
+  systemd:
+    name: NetworkManager
+    state: reloaded
+  listen: "Reload NetworkManager"
+  when:
+    - not ansible_check_mode
+
+- name: Restart NetworkManager
+  systemd:
+    name: NetworkManager
+    state: restarted
+  listen: "Restart NetworkManager"
+  when:
+    - not ansible_check_mode
+
+- name: Reload HAProxy
+  systemd:
+    name: haproxy
+    state: reloaded
+  listen: "Reload HAProxy"
+  when:
+    - not ansible_check_mode
+
+- name: Restart HAProxy
+  systemd:
+    name: haproxy
+    state: restarted
+  listen: "Restart HAProxy"
+  when:
+    - not ansible_check_mode
+
+- name: Restart DNSMasq
+  systemd:
+    name: dnsmasq
+    state: restarted
+  listen: "Restart DNSMasq"
+  when:
+    - not ansible_check_mode

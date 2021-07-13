@@ -1,0 +1,11 @@
+#########################
+{{ ansible_managed | comment }}
+#########################
+
+# NetworkManager configuration for CRC client
+
+[main]
+
+#dns=none
+#dns=systemd-resolved
+dns=dnsmasq

@@ -1,0 +1,378 @@
+---
+#########################
+# Install
+########################
+
+- name: "CRC Server Installation Tasks"
+  block:
+    - name: Debug pull secret
+      debug:
+        msg:
+          - "Pull secret content"
+          - "{{ crc_server_pull_secret_content }}"
+      when:
+        - crc_enable_debug | bool
+
+    - name: "Verify pull secret is available"
+      assert:
+        that:
+          - crc_server_pull_secret_content is defined
+          - crc_server_pull_secret_content | json_query(jmesquery_1) != ''
+          - crc_server_pull_secret_content | json_query(jmesquery_2) != ''
+          - crc_server_pull_secret_content | json_query(jmesquery_3) != ''
+          - crc_server_pull_secret_content | json_query(jmesquery_4) != ''
+        fail_msg:
+          - "FAIL: Check JSON pull secret!"
+        success_msg:
+          - "SUCCESS: JSON pull secret looks good!"
+      vars:
+        jmesquery_1: 'auths."cloud.openshift.com"'
+        jmesquery_2: 'auths."quay.io"'
+        jmesquery_3: 'auths."registry.connect.redhat.com"'
+        jmesquery_4: 'auths."registry.redhat.io"'
+
+    - name: "Create CRC {{ family }} working directory"
+      file:
+        path: "{{ crc_workdir }}/{{ family }}"
+        state: directory
+        mode: "0755"
+      check_mode: False
+
+    - name: "Download CRC {{ family }} checksum"
+      get_url:
+        url: "{{ crc_server_release_url }}/{{ crc_server_release_version }}/sha256sum.txt"
+        dest: "{{ crc_workdir }}/{{ family }}/crc-linux-{{ arch }}.sha256sum"
+        force: True
+      register: crc_server_checksum_download
+      until: crc_server_checksum_download is succeeded
+      retries: 5
+      delay: 60
+      changed_when: False
+      check_mode: False
+
+    - name: "Register CRC Checksum for {{ family }}"
+      shell:
+        cmd: grep {{ crc_server_release_name }} {{ crc_server_checksum_file }} | awk '//{print $1}'
+      vars:
+        crc_server_checksum_file: "{{ crc_workdir }}/{{ family }}/crc-linux-{{ arch }}.sha256sum"
+      register: crc_server_checksum_release
+      changed_when: False
+      check_mode: False
+      when:
+        - crc_server_checksum_download is success
+
+    - name: "Debug Message"
+      debug:
+        msg:
+          - "Release: {{ crc_server_release_version }}"
+          - "Checksum: {{ crc_server_checksum_release.stdout }}"
+          - "URL: {{ crc_server_release_url }}/{{ crc_server_release_version }}/{{ crc_server_release_name }}"
+      when:
+        - crc_enable_debug | bool
+
+    - name: "Download CRC {{ family }} release"
+      get_url:
+        url: "{{ crc_server_release_url }}/{{ crc_server_release_version }}/{{ crc_server_release_name }}"
+        dest: "{{ crc_workdir }}/{{ family }}/{{ crc_server_release_name }}"
+        force: False
+        checksum: sha256:{{ crc_server_checksum_release.stdout }}
+      register: crc_server_release_download
+      until: crc_server_release_download is succeeded
+      retries: 5
+      delay: 60
+      when:
+        - not ansible_check_mode
+
+    - name: "Create CRC {{ family }} extract directory"
+      file:
+        path: "{{ crc_workdir }}/{{ family }}/extracted"
+        state: directory
+        mode: "0755"
+      check_mode: False
+
+    - name: "Extract CRC {{ family }} archive"
+      unarchive:
+        src: "{{ crc_workdir }}/{{ family }}/{{ crc_server_release_name }}"
+        dest: "{{ crc_workdir }}/{{ family }}/extracted"
+        keep_newer: False
+        list_files: True
+        remote_src: True
+        extra_opts:
+          - "--strip-components=1"
+      register: crc_server_release_extracted
+      become: True
+      when:
+        - not ansible_check_mode
+        - crc_server_release_download is changed
+
+    #########################
+    # START WORKAROUND
+    #########################
+
+    # TODO:
+    #   * Determine libvirt package versions affected by bug and pin version
+    #   * Remove workarounds
+    # LINKS:
+    #   * https://bugzilla.redhat.com/show_bug.cgi?id=1924218
+    #   * https://bugzilla.redhat.com/show_bug.cgi?id=1940791
+
+    - name: "Ensure libvirtd is running"
+      systemd:
+        name: libvirtd
+        state: started
+      register: libvirtd_status_systemd
+      become: true
+      when:
+        - not ansible_check_mode
+
+    - name: Set libvirtdd status
+      set_fact:
+        libvirtd_status: "{{ libvirtd_status_systemd.state | default('UNKNOWN'), true }}"
+
+    - name: "Display message when libvirt is broken"
+      fail:
+        msg:
+          - "Libvirtd failed to start, current status: {{ libvirtd_status }}"
+      when:
+        - "'started' not in libvirtd_status"
+        - not ansible_check_mode
+
+    #########################
+    # END WORKAROUND
+    #########################
+
+    - name: "Copy CRC {{ family }} binary"
+      copy:
+        src: "{{ crc_workdir }}/{{ family }}/extracted/crc"
+        dest: "/usr/local/bin/crc"
+        validate: "%s version"
+        remote_src: True
+        mode: "0755"
+        force: True
+      register: crc_server_release_version_installed
+      when:
+        - not ansible_check_mode
+        - crc_server_release_extracted is changed
+
+    - name: "Debug Message"
+      debug:
+        msg:
+          - "CRC Server CLI version: {{ crc_server_release_version_installed }}"
+      when:
+        - crc_enable_debug | bool
+        - not ansible_check_mode
+
+    - name: "Check CRC in PATH for {{ family }}"
+      shell:
+        cmd: which crc
+      register: crc_server_result
+      ignore_errors: True
+      changed_when: False
+      check_mode: False
+
+    - name: "Verify CRC {{ family }} in PATH"
+      fail:
+        msg:
+          - "CRC server is not available in the path!"
+      ignore_errors: "{{ ansible_check_mode }}"
+      failed_when: crc_server_result.rc != 0
+
+    - name: "Create CRC server config directory for {{ crc_server_user_crc }}"
+      file:
+        path: "/home/{{ crc_server_user_crc }}/.crc"
+        state: directory
+        mode: "0755"
+        owner: "{{ crc_server_user_crc }}"
+        group: "{{ crc_server_user_crc }}"
+      become: True
+
+    - name: "Copy CRC server pull secret for {{ crc_server_user_crc }}"
+      template:
+        src: pull-secret.json.j2
+        dest: "{{ crc_server_pull_secret_path }}"
+        owner: "{{ crc_server_user_crc }}"
+        group: "{{ crc_server_user_crc }}"
+        force: True
+      become: True
+      no_log: True
+
+    - name: "Copy CRC server config for {{ crc_server_user_crc }}"
+      template:
+        src: crc.json.j2
+        dest: "/home/{{ crc_server_user_crc }}/.crc/crc.json"
+        owner: "{{ crc_server_user_crc }}"
+        group: "{{ crc_server_user_crc }}"
+        force: True
+      become: True
+
+    - name: "Create CRC server ssh dir for {{ crc_server_user_crc }}"
+      file:
+        path: "/home/{{ crc_server_user_crc }}/.ssh/configs"
+        state: directory
+        owner: "{{ crc_server_user_crc }}"
+        group: "{{ crc_server_user_crc }}"
+        mode: "0700"
+      check_mode: False
+
+    - name: "Copy CRC server ssh config for {{ crc_server_user_crc }}"
+      template:
+        src: crc_ssh.j2
+        dest: "/home/{{ crc_server_user_crc }}/.ssh/configs/crc"
+        owner: "{{ crc_server_user_crc }}"
+        group: "{{ crc_server_user_crc }}"
+        force: True
+      become: True
+
+    - name: "Include CRC server ssh config for {{ crc_server_user_crc }}"
+      ansible.builtin.blockinfile:
+        state: present
+        create: True
+        path: "/home/{{ crc_server_user_crc }}/.ssh/config"
+        block: |
+          Match localuser {{ crc_server_user_crc }}
+              Include ~/.ssh/configs/crc
+        owner: "{{ crc_server_user_crc }}"
+        group: "{{ crc_server_user_crc }}"
+
+    - name: "Setup CRC server deployment for {{ crc_server_user_crc }}"
+      command:
+        argv:
+          - crc
+          - setup
+          - --log-level
+          - "{{ crc_server_log_level }}"
+      become: False
+      become_user: "{{ crc_server_user_crc }}"
+      changed_when: False
+      when:
+        - not ansible_check_mode
+
+    # TODO: Fix correct kube-apiserver startup on attempt 1
+    # https://github.com/code-ready/crc/issues/2484
+
+    - name: "Start CRC server cluster for {{ crc_server_user_crc }}"
+      command:
+        argv:
+          - crc
+          - start
+          - --log-level
+          - "{{ crc_server_log_level }}"
+      become: False
+      become_user: "{{ crc_server_user_crc }}"
+      changed_when: False
+      ignore_errors: True # starting CRC can be like rolling a dice.
+      timeout: 900
+      when:
+        - not ansible_check_mode
+
+    - name: "Wait for CodeReady Containers API Port"
+      wait_for:
+        host: api.crc.testing
+        msg: "CodeReady Containers has failed to start!"
+        port: 6443
+      retries: 10
+      delay: 60
+      when:
+        - not ansible_check_mode
+
+    - name: "Wait for CodeReady Containers Ready"
+      ansible.builtin.command:
+        argv:
+          - "crc"
+          - "status"
+          - "--output"
+          - "json"
+      vars:
+        json_query: "openshiftStatus"
+        json_result: "Running"
+      register: crc_status
+      become: True
+      become_user: linadmin
+      delay: 60
+      retries: 10
+      until:
+        - crc_status.stdout | from_json | json_query(json_query) == json_result
+      when:
+        - not ansible_check_mode
+
+  when:
+    - family is defined
+    - type is defined
+    - type == "Install"
+    - state is defined
+
+- name: "CRC Server Kubeconfig Tasks"
+  block:
+    - name: "Create kubeconfig directory for root"
+      file:
+        state: directory
+        path: "/root/.kube"
+        owner: "root"
+        group: "root"
+
+    - name: "Create kubeconfig directory for {{ crc_server_user_crc }}"
+      file:
+        state: directory
+        path: "/home/{{ crc_server_user_crc }}/.kube"
+        owner: "{{ crc_server_user_crc }}"
+        group: "{{ crc_server_user_crc }}"
+
+    - name: "Create kubeconfig directory for {{ crc_server_user_controller }}"
+      file:
+        state: directory
+        path: "/home/{{ crc_server_user_controller }}/.kube"
+        owner: "{{ crc_server_user_controller }}"
+        group: "{{ crc_server_user_controller }}"
+      delegate_to: "{{ crc_controller_host }}"
+      when:
+        - crc_remote | bool
+
+    - name: "Configure CRC kubeconfig for root"
+      copy:
+        src: "/home/{{ crc_server_user_crc }}/.crc/machines/crc/kubeconfig"
+        dest: "/root/.kube/config-crc"
+        owner: root
+        group: root
+        mode: 0600
+        remote_src: True
+        force: True
+
+    - name: "Configure CRC kubeconfig for {{ crc_server_user_crc }}"
+      copy:
+        src: "/home/{{ crc_server_user_crc }}/.crc/machines/crc/kubeconfig"
+        dest: "/home/{{ crc_server_user_crc }}/.kube/config-crc"
+        owner: "{{ crc_server_user_crc }}"
+        group: "{{ crc_server_user_crc }}"
+        mode: 0600
+        remote_src: True
+        force: True
+
+    - name: "Configure CRC kubeconfig for {{ crc_server_user_controller }}"
+      ansible.builtin.fetch:
+        src: "/home/{{ crc_server_user_crc }}/.crc/machines/crc/kubeconfig"
+        dest: "/home/{{ crc_server_user_controller }}/.kube/config-crc"
+        fail_on_missing: True
+        flat: True
+        force: True
+      when:
+        - crc_remote | bool
+
+    - name: "Configure CRC kubeconfig permissions for {{ crc_server_user_controller }}"
+      file:
+        path: "/home/{{ crc_server_user_controller }}/.kube/config-crc"
+        owner: "{{ crc_server_user_controller }}"
+        group: "{{ crc_server_user_controller }}"
+        state: touch
+        mode: 0600
+        modification_time: preserve
+        access_time: preserve
+      delegate_to: "{{ crc_controller_host }}"
+      when:
+        - crc_remote | bool
+
+  when:
+    - family is defined
+    - type is defined
+    - type == "Install"
+    - state is defined
+    - crc_server_kubeconfig | bool

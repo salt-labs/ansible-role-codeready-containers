@@ -1,0 +1,13 @@
+---
+
+#########################
+# SELinux
+#########################
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/posix/seboolean_module.html
+- name: "{{ type }} selinux boolean {{ sebool.name }}"
+  seboolean:
+    name: "{{ sebool.name }}"
+    state: "{{ state }}"
+    persistent: "{{ sebool.persistent | default('false') }}"
+  become: true

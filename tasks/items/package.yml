@@ -1,0 +1,12 @@
+---
+
+#########################
+# Package
+#########################
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/package_module.html
+- name: "{{ type }} package {{ pkg }}"
+  package:
+    name: "{{ pkg }}"
+    state: "{{ state }}"
+  become: true

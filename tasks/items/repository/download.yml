@@ -1,0 +1,45 @@
+---
+
+#########################
+# Repository (Download)
+#########################
+
+- name: Configure downloaded repositories
+  block:
+
+    # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/rpm_key_module.html
+    - name: "{{ type }} GPG Key {{ item.name }}"
+      rpm_key:
+        key: "{{ item.gpgkey }}"
+        fingerprint: "{{ item.gpgfingerprint | default(omit) }}"
+        state: "{{ state }}"
+      when:
+        - item.gpgkey is defined
+        #- item|selectattr("gpgkey", "defined")|list|length >0
+
+    # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/get_url_module.html
+    - name: Install repository file {{ item.name }}
+      get_url:
+        url: "{{ item.url }}"
+        checksum: "{{ item.checksum | default(omit) }}"
+        dest: "/etc/yum.repos.d/{{ item.name }}.repo"
+        mode: "{{ item.mode | default('0644') }}"
+      when:
+        - type == "Install"
+
+    # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/file_module.html
+    - name: Remove repository file
+      file:
+        path: "{{ item.dest }}"
+        state: "{{ state }}"
+      when:
+        - type == "Remove"
+
+  become: true
+  when:
+    - crc_repos_download is defined
+    - ansible_facts.distribution == "RedHat"
+      or ansible_facts.distribution == "CentOS"
+      or ansible_facts.distribution == "Fedora"
+  tags:
+    - repository_download

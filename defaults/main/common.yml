@@ -1,0 +1,23 @@
+---
+#########################
+# Common
+#########################
+
+# If enabled, captures additional debug information (tag=debug)
+crc_enable_debug: False
+
+# The log level for crc binary operations, written to crc.log
+crc_log_level: "info"
+
+# WARNING: There is a 10GB minimum requirement to house extracted archives
+crc_workdir: "/tmp/crc"
+
+##########
+# Authentication
+##########
+
+crc_user_username: developer
+crc_user_password: "{{ vault_crc.user_password }}"
+
+crc_admin_username: kubeadmin
+crc_admin_password: "{{ vault_crc.admin_password }}"

@@ -1,0 +1,35 @@
+---
+
+#########################
+# Repositories
+#########################
+
+# If enabled, configures local repositories
+crc_repos: True
+
+# User customizable repositories (create method)
+crc_repos_create_user: []
+#  - name: crc_example_1
+#    description: Additional packages required by CRC
+#    baseurl: https://mirror.repo.local/repo.list
+#    enabled: True
+#    gpgcheck: True
+#    gpgkey: https://mirrot.repo.local/repo.gpgkey
+#    gpgfingerprint: ABCDEFGHBJLKMOPQ
+
+# User customizable repositories (download method)
+crc_repos_download_user: []
+#  - name: crc_example_2
+#    url: https://mirror.myrepo.com/repo.list
+#    checksum:
+#    dest: /etc/yum.repos.d/crc.repo
+#    mode: 0644
+#    gpgkey: https://mirror.myrepo.com/gpgkey
+#    gpgfingerprint: ABCDEFGHBJLKMOPQ
+
+# User customizable repositories (package method)
+crc_repos_packages_user: []
+#  - name: crc_example_3
+#    url: https://mirror.repo.local/repo.rpm
+#    checksum: optional checksum
+#    use: auto|yum|dnf

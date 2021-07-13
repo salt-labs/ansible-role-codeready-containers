@@ -1,0 +1,23 @@
+---
+
+#########################
+# Firewalld
+#########################
+
+# If enabled, configures Firewalld
+crc_firewalld: True
+
+# User customizable firewall rules
+crc_firewalld_rules_user: []
+#  - name: Allow-Service-RDP
+#    zone: public
+#    permanent: True
+#    state: enabled
+#    service: rdp
+#  - name: Allow-Port-RDP-Timeout
+#    zone: public
+#    permanent: False
+#    timeout: 300
+#    state: enabled
+#    port: 3389
+#    protocol: tcp

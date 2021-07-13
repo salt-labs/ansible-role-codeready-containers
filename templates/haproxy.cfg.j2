@@ -1,0 +1,97 @@
+#########################
+{{ ansible_managed | comment }}
+#########################
+
+##########
+# Global
+##########
+
+global
+  log /dev/log  local0
+  log /dev/log  local1 notice
+  user haproxy
+  group haproxy
+  daemon
+
+##########
+# Defaults
+##########
+
+defaults
+  log global
+  mode  http
+  option  httplog
+  option http-server-close
+  option  dontlognull
+  option redispatch
+  option  contstats
+  retries 3
+  backlog 10000
+  timeout client 25s
+  timeout connect 5s
+  timeout server 25s
+  timeout tunnel 3600s
+  timeout http-keep-alive 1s
+  timeout http-request 15s
+  timeout queue 30s
+  timeout tarpit 60s
+  default-server inter 3s rise 2 fall 3
+  option forwardfor
+
+##########
+# Frontends
+##########
+
+frontend apps-http
+  bind {{ crc_remote_haproxy_ip }}:80
+  option tcplog
+  mode tcp
+  default_backend apps-http
+
+frontend apps-https
+  bind {{ crc_remote_haproxy_ip }}:443
+  option tcplog
+  mode tcp
+  default_backend apps-https
+
+frontend api
+  bind {{ crc_remote_haproxy_ip }}:6443
+  option tcplog
+  mode tcp
+  default_backend api
+
+##########
+# Backends
+##########
+
+backend apps-http
+  mode tcp
+  balance roundrobin
+  option tcp-check
+  #option httpchk GET /healthz HTTP/1.1\r\nHost:\ {{ crc_server_ip }}
+  server crc {{ crc_server_ip }} check port 80
+
+backend apps-https
+  mode tcp
+  balance roundrobin
+  option ssl-hello-chk
+  #option httpchk GET /healthz HTTP/1.1\r\nHost:\ {{ crc_server_ip }}
+  server crc {{ crc_server_ip }} check port 443
+
+backend api
+  mode tcp
+  balance roundrobin
+  option ssl-hello-chk
+  #option httpchk GET /healthz HTTP/1.1\r\nHost:\ {{ crc_server_ip }}
+  server crc {{ crc_server_ip }} check port 6443
+
+listen stats
+  bind {{ crc_remote_haproxy_ip }}:1936
+  log global
+  mode http
+  stats auth admin:haproxy
+  stats enable
+  stats hide-version
+  stats refresh 30s
+  stats show-node
+  stats uri /stats

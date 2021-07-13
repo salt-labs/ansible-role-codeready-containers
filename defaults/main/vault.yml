@@ -1,0 +1,35 @@
+---
+#########################
+# Vault
+#########################
+
+# This is an example of the secrets you would encrypt in your vault.
+
+vault_crc:
+  # This pull secret can be obtained from:
+  #   https://cloud.redhat.com/openshift/create/local
+  #pull_secret_content: |
+  #  {
+  #    "auths": {
+  #      "cloud.openshift.com": {
+  #        "auth": "SECRET_HERE",
+  #        "email": "user@no-reply"
+  #      },
+  #      "quay.io": {
+  #        "auth": "SECRET_HERE",
+  #        "email": "user@no-reply"
+  #      },
+  #      "registry.connect.redhat.com": {
+  #        "auth": "SECRET_HERE",
+  #        "email": "user@no-reply"
+  #      },
+  #      "registry.redhat.io": {
+  #        "auth": "SECRET_HERE",
+  #        "email": "user@no-reply"
+  #      }
+  #    }
+  #  }
+
+  user_password: developer
+
+  admin_password: kubeadmin

@@ -1,0 +1,23 @@
+---
+
+#########################
+# Packages
+#########################
+
+# If enabled, configures local packages
+crc_packages: True
+
+# User customizable packages to remove
+crc_packages_remove_user: []
+#  - pkg_name_1
+#  - pkg_name_2
+
+# User customizable pre-requisite packages to install
+crc_packages_prereq_user: []
+#  - pkg_name_1
+#  - pkg_name_2
+
+# User customizable packages to install
+crc_packages_install_user: []
+#  - pkg_name_1
+#  - pkg_name_2

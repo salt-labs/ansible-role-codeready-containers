@@ -1,0 +1,170 @@
+---
+
+#########################
+# Tasks (Remote DNSMasq Install)
+#########################
+
+- name: DNSMasq Installation Tasks
+  block:
+
+    - name: "{{ type }} DNSMasq packages"
+      package:
+        name:
+          - dnsmasq
+          - firewalld
+        state: "{{ state }}"
+
+    - name: Start Firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: True
+
+    - name: Open TCP Port 53 (DNS)
+      ansible.posix.firewalld:
+        port: 53/tcp
+        permanent: True
+        state: enabled
+      notify:
+        - "Reload Firewalld"
+        - "Restart Firewalld"
+
+    - name: Open UDP Port 53 (DNS)
+      ansible.posix.firewalld:
+        port: 53/udp
+        permanent: True
+        state: enabled
+      notify:
+        - "Reload Firewalld"
+        - "Restart Firewalld"
+
+    - name: Allow DNSMasq to use TCP port 53
+      community.general.seport:
+        ports: 53
+        proto: tcp
+        reload: True
+        setype: dns_port_t
+        state: "{{ state }}"
+
+    - name: Allow DNSMasq to use UDP port 53
+      community.general.seport:
+        ports: 53
+        proto: udp
+        reload: True
+        setype: dns_port_t
+        state: "{{ state }}"
+
+    - name: Determine CRC IP address
+      command:
+        argv:
+          - "crc"
+          - "ip"
+      become: False
+      become_user: "{{ crc_server_user_crc }}"
+      register: crc_server_ip_address
+      check_mode: False
+
+    - name: Set CRC IP address facts
+      set_fact:
+        crc_server_ip: "{{ crc_server_ip_address.stdout | default('NONE') }}"
+        crc_remote_dnsmasq_ip: "{{ ansible_facts.default_ipv4.address | default('NONE') }}"
+
+    - name: Display CRC IP address facts
+      ansible.builtin.debug:
+        msg:
+          - "CRC IPv4: {{ crc_server_ip }}"
+          - "DNSMasq IPv4: {{ crc_remote_dnsmasq_ip }}"
+
+    - name: Create NetworkManager conf.d (CRC Server)
+      file:
+        state: directory
+        path: /etc/NetworkManager/conf.d
+        recurse: True
+        owner: root
+        group: root
+
+    - name: Create NetworkManager dnsmasq.d (CRC Server)
+      file:
+        state: directory
+        path: /etc/NetworkManager/dnsmasq.d
+        recurse: True
+        owner: root
+        group: root
+
+    - name: Create NetworkManager conf.d (CRC Client)
+      file:
+        state: directory
+        path: /etc/NetworkManager/conf.d
+        recurse: True
+        owner: root
+        group: root
+      delegate_to: localhost
+
+    - name: Create NetworkManager dnsmasq.d (CRC Client)
+      file:
+        state: directory
+        path: /etc/NetworkManager/dnsmasq.d
+        recurse: True
+        owner: root
+        group: root
+      delegate_to: localhost
+
+    - name: Configure NetworkManager (CRC Server)
+      template:
+        src: networkmanager_crc_server.conf.j2
+        dest: /etc/NetworkManager/conf.d/crc-dnsmasq.conf
+        owner: root
+        group: root
+        mode: 0666
+      notify:
+        - "Reload NetworkManager"
+
+    - name: Configure DNSMasq (CRC Server)
+      template:
+        src: dnsmasq_crc_server.conf.j2
+        dest: /etc/NetworkManager/dnsmasq.d/crc-dnsmasq.conf
+        owner: root
+        group: root
+        mode: 0666
+      notify:
+        - "Restart DNSMasq"
+
+    - name: Configure NetworkManager (CRC Client)
+      template:
+        src: networkmanager_crc_client.conf.j2
+        dest: /etc/NetworkManager/conf.d/crc-dnsmasq.conf
+        owner: root
+        group: root
+        mode: 0666
+      delegate_to: localhost
+      notify:
+        - "Reload NetworkManager"
+
+    - name: Configure DNSMasq (CRC Client)
+      template:
+        src: dnsmasq_crc_client.conf.j2
+        dest: /etc/NetworkManager/dnsmasq.d/crc-dnsmasq.conf
+        owner: root
+        group: root
+        mode: 0666
+      delegate_to: localhost
+      notify:
+        - "Restart DNSMasq"
+
+    - name: Start DNSMasq
+      service:
+        name: dnsmasq
+        state: started
+        enabled: True
+      when:
+        - not ansible_check_mode
+
+    - name: Reload Firewalld
+      service:
+        name: firewalld
+        state: reloaded
+
+  when:
+    - type is defined
+    - type == "Install"
+    - state is defined

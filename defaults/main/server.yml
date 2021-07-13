@@ -1,0 +1,88 @@
+---
+#########################
+# Server
+#########################
+
+# Global flag to disable all server tasks (useful for testing)
+crc_server: True
+
+# If enabled, installs CRC (enable this + remove for total reinstall)
+crc_server_install: True
+
+# If enabled, removes CRC (enable this + install for total reinstall)
+crc_server_remove: False
+
+# If enabled, enables remote access through HAProxy and DNSmasq (tags=remote)
+crc_server_remote: True
+
+# The log level for crc binary operations, written to crc.log
+crc_server_log_level: "info"
+
+# The user who initiates the setup of CRC and the one running ansible.
+crc_server_user_crc: ""
+crc_server_user_controller: ""
+
+# If enabled, copies a working system:admin kubeconfig to /root/.kube/config
+# WARNING: will overwrite any existing config file
+crc_server_kubeconfig: False
+
+# TODO: Set default passwords. These should be overridden via vault.
+crc_user: "developer"
+crc_user_password: "developer"
+crc_admin: "kubeadmin"
+crc_admin_password: "kubeadmin"
+
+# WARNING: This is mandatory to be provided by the user!
+crc_server_pull_secret_content: "{{ vault_crc.pull_secret_content }}"
+
+# Path where user provided pull secret is stored
+crc_server_pull_secret_path: "/home/{{ crc_server_user_crc }}/.crc/pull-secret.json"
+
+# User configurable release details
+
+crc_server_release_version: "1.28.0"
+crc_server_release_sha: "26c2ef84204233159e3cd33665e5b5fc7a169f88a884f5e50865b4b0a15520fa"
+crc_server_release_url: "https://mirror.openshift.com/pub/openshift-v4/clients/crc"
+crc_server_release_name: crc-linux-{{ arch }}.tar.xz
+
+# Post install variables
+
+crc_server_ip: ""
+
+# Templates config options
+
+crc_server_config_consent_telemetry: "yes"
+crc_server_config_cpus: "4"
+crc_server_config_disable_update_check: "false"
+crc_server_config_disk_size: "32"
+crc_server_config_enable_cluster_monitoring: "false"
+crc_server_config_enable_experimental_features: "false"
+crc_server_config_enable_host_network_access: "false"
+crc_server_config_http_proxy: ""
+crc_server_config_https_proxy: ""
+crc_server_config_memory: "14000"
+crc_server_config_pull_secret_file: "{{ crc_server_pull_secret_path }}"
+crc_server_config_skip_check_admin_helper_cached: "false"
+crc_server_config_skip_check_bundle_extracted: "false"
+crc_server_config_skip_check_crc_network: "false"
+crc_server_config_skip_check_crc_network_active: "false"
+crc_server_config_skip_check_dnsmasq_network_manager_config: "false"
+crc_server_config_skip_check_kvm_enabled: "false"
+crc_server_config_skip_check_libvirt_driver: "false"
+crc_server_config_skip_check_libvirt_group_active: "false"
+crc_server_config_skip_check_libvirt_installed: "false"
+crc_server_config_skip_check_libvirt_running: "false"
+crc_server_config_skip_check_libvirt_version: "false"
+crc_server_config_skip_check_network_manager_dispatcher_file: "false"
+crc_server_config_skip_check_network_manager_installed: "false"
+crc_server_config_skip_check_network_manager_running: "false"
+crc_server_config_skip_check_obselete_admin_helper: "false"
+crc_server_config_skip_check_ram: "false"
+crc_server_config_skip_check_root_user: "false"
+crc_server_config_skip_check_supported_cpu_arch: "false"
+crc_server_config_skip_check_systemd_networkd_running: "false"
+crc_server_config_skip_check_systemd_resolved_running: "false"
+crc_server_config_skip_check_user_in_libvirt_group: "false"
+crc_server_config_skip_check_virt_enabled: "false"
+crc_server_config_skip_check_vsock: "false"
+crc_server_config_skip_check_wsl2: "false"

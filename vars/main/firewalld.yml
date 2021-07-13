@@ -1,0 +1,8 @@
+---
+
+#########################
+# Firewalld (Variables)
+#########################
+
+_crc_firewalld_rules:
+  all: []

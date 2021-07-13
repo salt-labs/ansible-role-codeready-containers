@@ -1,0 +1,61 @@
+---
+
+#########################
+# Repository (Install)
+#########################
+
+- name: Configure repositories installed from packages
+  block:
+
+    # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/set_fact_module.html
+    - name: Set package name (URL)
+      set_fact:
+        package_name: "{{ item.url }}"
+      when:
+        - item.url is defined
+
+    # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/set_fact_module.html
+    - name: Set package name (name)
+      set_fact:
+        package_name: "{{ item.name }}"
+      when:
+        - item.url is not defined
+
+    # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/package_module.html
+    #- name: Install repository package
+    #  package:
+    #    name: "{{ package_name }}"
+    #    state: "{{ item.state | default('present') }}"
+    #    use: "{{ item.use | default('auto') }}"
+
+    # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/yum_module.html
+    - name: "{{ type }} repository package {{ package_name }} (yum)"
+      yum:
+        name: "{{ package_name }}"
+        state: "{{ state }}"
+      when:
+      - ( ansible_facts.distribution == "RedHat" and ( ansible_facts.distribution_major_version == '7' )
+        ) or
+        ( ansible_facts.distribution == "CentOS" and ( ansible_facts.distribution_major_version == "7" )
+        ) or
+        ( ansible_facts.distribution == "Fedora" and ( ansible_facts.distribution_major_version < "21" )
+
+    # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/dnf_module.html
+    - name: "{{ type }} repository package {{ package_name }} (dnf) "
+      dnf:
+        name: "{{ package_name }}"
+        state: "{{ item.state }}"
+      when:
+      - ( ansible_facts.distribution == "RedHat" and ( ansible_facts.distribution_major_version == '8' )
+        ) or
+        ( ansible_facts.distribution == "CentOS" and ( ansible_facts.distribution_major_version == "8" )
+        ) or
+        ( ansible_facts.distribution == "Fedora" and ( ansible_facts.distribution_major_version >= "22" )
+
+  become: true
+  when:
+    - ansible_facts.distribution == "RedHat"
+      or ansible_facts.distribution == "CentOS"
+      or ansible_facts.distribution == "Fedora"
+  tags:
+    - repository_install

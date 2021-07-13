@@ -1,0 +1,11 @@
+#########################
+{{ ansible_managed | comment }}
+#########################
+
+Host crc
+    Hostname 192.168.130.11
+    User core
+    IdentityFile ~/.crc/machines/crc/id_rsa
+    IdentityFile ~/.crc/machines/crc/id_ecdsa
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null

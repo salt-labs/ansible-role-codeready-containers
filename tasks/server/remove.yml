@@ -1,0 +1,195 @@
+---
+#########################
+# Remove
+#########################
+
+- name: CRC Server Removal Tasks
+  block:
+    - name: Check CRC {{ family }} installed
+      shell:
+        cmd: "crc version | awk '//{print $3}' | tail -n1"
+      failed_when: False
+      ignore_errors: True
+      become: False
+      register: crc_server_version
+      check_mode: False
+
+    - name: Set CRC version fact
+      set_fact:
+        crc_server_installed_version: "{{ crc_server_version.stdout | default('NONE', true) }}"
+      check_mode: False
+
+    - name: Stop CRC version {{ crc_server_installed_version }}
+      command:
+        argv:
+          - crc
+          - stop
+          - --force
+          - --log-level
+          - "{{ crc_log_level }}"
+      timeout: 600
+      ignore_errors: True
+      become: False
+      register: crc_server_stopped
+      when:
+        - crc_server_installed_version is defined
+        - crc_server_installed_version != 'NONE'
+        - not ansible_check_mode
+
+    - name: "Wait for CRC to stop"
+      ansible.builtin.command:
+        argv:
+          - "crc"
+          - "status"
+          - "--output"
+          - "json"
+      register: crc_status
+      become: True
+      become_user: linadmin
+      delay: 60
+      retries: 10
+      ignore_errors: False
+      until: >
+        crc_status.stdout|from_json|json_query('openshiftStatus') == 'Stopped' or
+        crc_status.stdout|from_json|json_query('error') == "Machine does not exist. Use 'crc start' to create it"
+      when:
+        - crc_server_installed_version is defined
+        - crc_server_installed_version != 'NONE'
+        - not ansible_check_mode
+
+    - name: Delete CRC version {{ crc_server_installed_version }}
+      command:
+        argv:
+          - crc
+          - delete
+          - --force
+          - --log-level
+          - "{{ crc_log_level }}"
+      timeout: 600
+      ignore_errors: True
+      become: False
+      register: crc_server_removed
+      notify:
+        - "Reboot Host"
+      when:
+        - crc_server_installed_version is defined
+        - crc_server_installed_version != 'NONE'
+        - not ansible_check_mode
+
+    - name: Cleanup CRC version {{ crc_server_installed_version }}
+      command:
+        argv:
+          - crc
+          - cleanup
+          - --log-level
+          - "{{ crc_log_level }}"
+      ignore_errors: True
+      become: False
+      register: crc_server_cleanup
+      notify:
+        - "Reboot Host"
+      when:
+        - crc_server_installed_version is defined
+        - crc_server_installed_version != 'NONE'
+        - not ansible_check_mode
+
+    - name: Destroy CRC VM
+      command:
+        argv:
+          - virsh
+          - -c
+          - qemu:///system
+          - destroy
+          - crc
+      ignore_errors: True
+      become: True
+      notify:
+        - "Reboot Host"
+      when:
+        - not ansible_check_mode
+
+    - name: Undefine CRC VM
+      command:
+        argv:
+          - virsh
+          - -c
+          - qemu:///system
+          - undefine
+          - crc
+      ignore_errors: True
+      become: True
+      notify:
+        - "Reboot Host"
+      when:
+        - not ansible_check_mode
+
+    - name: Remove CRC networking
+      command:
+        argv:
+          - virsh
+          - -c
+          - qemu:///system
+          - net-destroy
+          - crc
+      become: True
+      ignore_errors: True
+      notify:
+        - "Reboot Host"
+      when:
+        - not ansible_check_mode
+
+    - name: Remove CRC version {{ crc_server_installed_version }} binary
+      file:
+        path: "/usr/local/bin/crc"
+        state: absent
+      become: True
+
+    - name: Remove CRC working directory for {{ family }}
+      file:
+        path: "{{ crc_workdir }}/{{ family }}"
+        state: absent
+      become: True
+
+    - name: Remove CRC server config directory for {{ crc_server_user_crc }}
+      file:
+        state: absent
+        path: "/home/{{ crc_server_user_crc }}/.crc"
+      become: True
+
+    - name: Remove CRC server ssh config for {{ crc_server_user_crc }}
+      file:
+        state: absent
+        path: "/home/{{ crc_server_user_crc }}/.ssh/configs/crc"
+      become: True
+
+    - name: Check CRC server ssh config present for {{ crc_server_user_crc }}
+      stat:
+        path: "/home/{{ crc_server_user_crc }}/.ssh/config"
+      register: crc_server_user_ssh_config
+
+    - name: Create CRC server ssh config
+      file:
+        path: "/home/{{ crc_server_user_crc }}/.ssh/config"
+        owner: "{{ crc_server_user_crc }}"
+        group: "{{ crc_server_user_crc }}"
+        state: touch
+        modification_time: preserve
+        access_time: preserve
+      when: crc_server_user_ssh_config.stat.exists == false
+
+    - name: Remove CRC server ssh config for {{ crc_server_user_crc }}
+      ansible.builtin.blockinfile:
+        state: absent
+        path: "/home/{{ crc_server_user_crc }}/.ssh/config"
+        block: |
+          Match localuser {{ crc_server_user_crc }}
+              Include ~/.ssh/configs/crc
+        owner: "{{ crc_server_user_crc }}"
+        group: "{{ crc_server_user_crc }}"
+      when: crc_server_user_ssh_config.stat.exists == true
+
+  when:
+    - family is defined
+    - type is defined
+    - type == "Remove"
+    - state is defined
