@@ -5,7 +5,7 @@
 
 - name: "CRC Server Installation Tasks"
   block:
-    - name: Debug pull secret
+    - name: "Debug pull secret"
       debug:
         msg:
           - "Pull secret content"
@@ -327,7 +327,7 @@
       when:
         - crc_remote | bool
 
-    - name: "Configure CRC kubeconfig for root"
+    - name: "Configure CRC Kubeadmin kubeconfig for root"
       copy:
         src: "/home/{{ crc_server_user_crc }}/.crc/machines/crc/kubeconfig"
         dest: "/root/.kube/config-crc"
@@ -337,7 +337,7 @@
         remote_src: True
         force: True
 
-    - name: "Configure CRC kubeconfig for {{ crc_server_user_crc }}"
+    - name: "Configure CRC Kubeadmin kubeconfig for {{ crc_server_user_crc }}"
       copy:
         src: "/home/{{ crc_server_user_crc }}/.crc/machines/crc/kubeconfig"
         dest: "/home/{{ crc_server_user_crc }}/.kube/config-crc"
@@ -347,7 +347,7 @@
         remote_src: True
         force: True
 
-    - name: "Configure CRC kubeconfig for {{ crc_server_user_controller }}"
+    - name: "Configure CRC Kubeadmin kubeconfig for {{ crc_server_user_controller }}"
       ansible.builtin.fetch:
         src: "/home/{{ crc_server_user_crc }}/.crc/machines/crc/kubeconfig"
         dest: "/home/{{ crc_server_user_controller }}/.kube/config-crc"
@@ -369,6 +369,18 @@
       delegate_to: "{{ crc_controller_host }}"
       when:
         - crc_remote | bool
+
+    - name: "Login to OpenShift as CRC Developer"
+      command:
+        argv:
+          - "oc"
+          - "login"
+          - "-u"
+          - "{{ crc_user_username }}"
+          - "-p"
+          - "{{ crc_user_password }}"
+          - "--insecure-skip-tls-verify=true"
+          - "https://api.crc.testing:6443"
 
   when:
     - family is defined

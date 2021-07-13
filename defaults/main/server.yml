@@ -26,12 +26,6 @@ crc_server_user_controller: ""
 # WARNING: will overwrite any existing config file
 crc_server_kubeconfig: False
 
-# TODO: Set default passwords. These should be overridden via vault.
-crc_user: "developer"
-crc_user_password: "developer"
-crc_admin: "kubeadmin"
-crc_admin_password: "kubeadmin"
-
 # WARNING: This is mandatory to be provided by the user!
 crc_server_pull_secret_content: "{{ vault_crc.pull_secret_content }}"
 

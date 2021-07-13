@@ -3,9 +3,9 @@
 # Remove
 #########################
 
-- name: CRC Server Removal Tasks
+- name: "CRC Server Removal Tasks"
   block:
-    - name: Check CRC {{ family }} installed
+    - name: "Check CRC {{ family }} installed"
       shell:
         cmd: "crc version | awk '//{print $3}' | tail -n1"
       failed_when: False
@@ -14,12 +14,12 @@
       register: crc_server_version
       check_mode: False
 
-    - name: Set CRC version fact
+    - name: "Set CRC version fact"
       set_fact:
         crc_server_installed_version: "{{ crc_server_version.stdout | default('NONE', true) }}"
       check_mode: False
 
-    - name: Stop CRC version {{ crc_server_installed_version }}
+    - name: "Stop CRC version {{ crc_server_installed_version }}"
       command:
         argv:
           - crc
@@ -57,7 +57,7 @@
         - crc_server_installed_version != 'NONE'
         - not ansible_check_mode
 
-    - name: Delete CRC version {{ crc_server_installed_version }}
+    - name: "Delete CRC version {{ crc_server_installed_version }}"
       command:
         argv:
           - crc
@@ -76,7 +76,7 @@
         - crc_server_installed_version != 'NONE'
         - not ansible_check_mode
 
-    - name: Cleanup CRC version {{ crc_server_installed_version }}
+    - name: "Cleanup CRC version {{ crc_server_installed_version }}"
       command:
         argv:
           - crc
@@ -93,7 +93,7 @@
         - crc_server_installed_version != 'NONE'
         - not ansible_check_mode
 
-    - name: Destroy CRC VM
+    - name: "Destroy CRC VM"
       command:
         argv:
           - virsh
@@ -108,7 +108,7 @@
       when:
         - not ansible_check_mode
 
-    - name: Undefine CRC VM
+    - name: "Undefine CRC VM"
       command:
         argv:
           - virsh
@@ -123,7 +123,7 @@
       when:
         - not ansible_check_mode
 
-    - name: Remove CRC networking
+    - name: "Remove CRC networking"
       command:
         argv:
           - virsh
@@ -138,36 +138,36 @@
       when:
         - not ansible_check_mode
 
-    - name: Remove CRC version {{ crc_server_installed_version }} binary
+    - name: "Remove CRC version {{ crc_server_installed_version }} binary"
       file:
         path: "/usr/local/bin/crc"
         state: absent
       become: True
 
-    - name: Remove CRC working directory for {{ family }}
+    - name: "Remove CRC working directory for {{ family }}"
       file:
         path: "{{ crc_workdir }}/{{ family }}"
         state: absent
       become: True
 
-    - name: Remove CRC server config directory for {{ crc_server_user_crc }}
+    - name: "Remove CRC server config directory for {{ crc_server_user_crc }}"
       file:
         state: absent
         path: "/home/{{ crc_server_user_crc }}/.crc"
       become: True
 
-    - name: Remove CRC server ssh config for {{ crc_server_user_crc }}
+    - name: "Remove CRC server ssh config for {{ crc_server_user_crc }}"
       file:
         state: absent
         path: "/home/{{ crc_server_user_crc }}/.ssh/configs/crc"
       become: True
 
-    - name: Check CRC server ssh config present for {{ crc_server_user_crc }}
+    - name: "Check CRC server ssh config present for {{ crc_server_user_crc }}"
       stat:
         path: "/home/{{ crc_server_user_crc }}/.ssh/config"
       register: crc_server_user_ssh_config
 
-    - name: Create CRC server ssh config
+    - name: "Create CRC server ssh config"
       file:
         path: "/home/{{ crc_server_user_crc }}/.ssh/config"
         owner: "{{ crc_server_user_crc }}"
@@ -177,7 +177,7 @@
         access_time: preserve
       when: crc_server_user_ssh_config.stat.exists == false
 
-    - name: Remove CRC server ssh config for {{ crc_server_user_crc }}
+    - name: "Remove CRC server ssh config for {{ crc_server_user_crc }}"
       ansible.builtin.blockinfile:
         state: absent
         path: "/home/{{ crc_server_user_crc }}/.ssh/config"
@@ -187,6 +187,24 @@
         owner: "{{ crc_server_user_crc }}"
         group: "{{ crc_server_user_crc }}"
       when: crc_server_user_ssh_config.stat.exists == true
+
+    - name: "Remove CRC Kubeadmin kubeconfig for root"
+      file:
+        state: absent
+        path: "/root/.kube/config-crc"
+
+    - name: "Remove CRC Kubeadmin kubeconfig for {{ crc_server_user_crc }}"
+      file:
+        state: absent
+        path: "/home/{{ crc_server_user_crc }}/.kube/config-crc"
+
+    - name: "Remove CRC Kubeadmin kubeconfig for {{ crc_server_user_controller }}"
+      file:
+        state: absent
+        path: "/home/{{ crc_server_user_controller }}/.kube/config-crc"
+      delegate_to: "{{ ansible_controller }}"
+      when:
+        - crc_remote | bool
 
   when:
     - family is defined
