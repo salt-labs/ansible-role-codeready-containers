@@ -24,3 +24,6 @@ address=/crc.testing/{{ crc_remote_dnsmasq_ip }}
 
 # Forward all Kubernetes APP requests (HTTP)
 address=/apps-crc.testing/{{ crc_remote_dnsmasq_ip }}
+
+# Forward all OpenShift Build requests (HTTP)
+address=/build.openshift.io/{{ crc_remote_dnsmasq_ip }}
