@@ -202,7 +202,7 @@
       file:
         state: absent
         path: "/home/{{ crc_server_user_controller }}/.kube/config-crc"
-      delegate_to: "{{ ansible_controller }}"
+      delegate_to: "{{ crc_controller_host }}"
       when:
         - crc_remote | bool
 
