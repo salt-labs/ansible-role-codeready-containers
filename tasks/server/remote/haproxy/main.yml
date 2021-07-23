@@ -20,9 +20,8 @@
         name:
           - firewalld
         state: "{{ state }}"
-      when: >
-        state == 'Install' or
-        not firewalld_installed succeeded
+      when:
+        - type == 'Install'
 
     - name: "{{ type }} HAProxy package"
       package:
@@ -126,9 +125,8 @@
   when:
     - type is defined
     - state is defined
-    - type == 'Install'
 
-- name: "HAProxy: Configuration"
+- name: "HAProxy: Gather information"
   block:
 
     - name: "Determine CRC IP address"
@@ -152,12 +150,20 @@
           - "CRC IPv4: {{ crc_server_ip }}"
           - "HAProxy IPv4: {{ crc_remote_haproxy_ip }}"
 
+  when:
+    - state is defined
+    - type == 'Install'
+
+- name: "HAProxy: Configure HAProxy"
+  block:
+
     - name: "Configure HAProxy"
       template:
         src: haproxy.cfg.j2
         dest: /etc/haproxy/haproxy.cfg
         owner: root
         group: root
+        state: "{{ state }}"
       notify:
         - "Reload HAProxy"
 
@@ -168,8 +174,8 @@
         enabled: True
       when:
         - not ansible_check_mode
+        - type = 'Install'
 
   when:
     - type is defined
     - state is defined
-    - type == 'Install'

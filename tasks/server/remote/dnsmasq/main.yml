@@ -1,58 +1,101 @@
 ---
 
 #########################
-# Tasks (Remote DNSMasq Install)
+# Tasks (Remote DNSMasq)
 #########################
 
-- name: DNSMasq Installation Tasks
+- name: "DNSMasq: Packages"
   block:
 
-    - name: "{{ type }} DNSMasq packages"
+    - name: "Check if Firewalld installed"
+      package:
+        name: firewalld
+        state: present
+      check_mode: True
+      ignore_errors: True
+      register: firewalld_installed
+
+    - name: "{{ type }} Firewalld package"
+      package:
+        name:
+          - firewalld
+        state: "{{ state }}"
+      when:
+        - type == 'Install'
+
+    - name: "{{ type }} DNSMasq package"
       package:
         name:
           - dnsmasq
-          - firewalld
         state: "{{ state }}"
 
-    - name: Start Firewalld
+  when:
+    - type is defined
+    - state is defined
+
+- name: "HAProxy: Firewall Ports"
+  block:
+
+    - name: "Start Firewalld"
       service:
         name: firewalld
         state: started
         enabled: True
+      when:
+        - type == 'Install'
 
-    - name: Open TCP Port 53 (DNS)
+    - name: "Open Firewall Ports"
+      set_fact:
+        verb: "Open"
+      when:
+        - type == "Install"
+        - state is defined
+
+    - name: "Close Firewall Ports"
+      set_fact:
+        verb: "Close"
+      when:
+        - type == "Remove"
+        - state is define
+
+    - name: "{{ type }} TCP Port 53 (DNS)"
       ansible.posix.firewalld:
         port: 53/tcp
         permanent: True
-        state: enabled
+        state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
       notify:
         - "Reload Firewalld"
-        - "Restart Firewalld"
 
-    - name: Open UDP Port 53 (DNS)
+    - name: "{{ type }} UDP Port 53 (DNS)"
       ansible.posix.firewalld:
         port: 53/udp
         permanent: True
-        state: enabled
+        state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
       notify:
         - "Reload Firewalld"
-        - "Restart Firewalld"
 
-    - name: Allow DNSMasq to use TCP port 53
-      community.general.seport:
-        ports: 53
-        proto: tcp
-        reload: True
-        setype: dns_port_t
-        state: "{{ state }}"
+    - name: "{{ type }} TCP Port 53 (DNS)"
+      ansible.posix.firewalld:
+        port: 53/tcp
+        permanent: True
+        state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
+        notify:
+          - "Reload Firewalld"
 
-    - name: Allow DNSMasq to use UDP port 53
-      community.general.seport:
-        ports: 53
-        proto: udp
-        reload: True
-        setype: dns_port_t
-        state: "{{ state }}"
+    - name: "{{ type }} UDP Port 53 (DNS)"
+      ansible.posix.firewalld:
+        port: 53/udp
+        permanent: True
+        state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
+        notify:
+          - "Reload Firewalld"
+
+  when:
+    - type is defined
+    - state is defined
+
+- name: "DNSMasq: Gather information"
+  block:
 
     - name: Determine CRC IP address
       command:
@@ -75,39 +118,52 @@
           - "CRC IPv4: {{ crc_server_ip }}"
           - "DNSMasq IPv4: {{ crc_remote_dnsmasq_ip }}"
 
-    - name: Create NetworkManager conf.d (CRC Server)
+  when:
+    - state is defined
+    - type == 'Install'
+
+- name: "DNSMasq: Configure DNSMasq folders"
+  block:
+
+    - name: "{{ type }} NetworkManager conf.d (CRC Server)"
+      file:
+        state: "directory"
+        path: /etc/NetworkManager/conf.d
+        recurse: True
+        owner: root
+        group: root
+
+    - name: "{{ type }} NetworkManager conf.d (CRC Client)"
       file:
         state: directory
         path: /etc/NetworkManager/conf.d
         recurse: True
         owner: root
         group: root
+      delegate_to: "{{ crc_controller_host }}"
 
-    - name: Create NetworkManager dnsmasq.d (CRC Server)
+    - name: "{{ type }} NetworkManager dnsmasq.d (CRC Server)"
       file:
-        state: directory
+        state: "{{ directory if state == 'present' else 'absent' }}"
         path: /etc/NetworkManager/dnsmasq.d
         recurse: True
         owner: root
         group: root
 
-    - name: Create NetworkManager conf.d (CRC Client)
+    - name: "{{ type }} NetworkManager dnsmasq.d (CRC Client)"
       file:
-        state: directory
-        path: /etc/NetworkManager/conf.d
-        recurse: True
-        owner: root
-        group: root
-      delegate_to: localhost
-
-    - name: Create NetworkManager dnsmasq.d (CRC Client)
-      file:
-        state: directory
+        state: "{{ directory ifstate == 'present' else 'absent' }}"
         path: /etc/NetworkManager/dnsmasq.d
         recurse: True
         owner: root
         group: root
-      delegate_to: localhost
+      delegate_to: "{{ crc_controller_host }}"
+
+  when:
+    - state is defined
+
+- name: "DNSMasq: Configure DNSMasq configs"
+  block:
 
     - name: Configure NetworkManager (CRC Server)
       template:
@@ -136,7 +192,7 @@
         owner: root
         group: root
         mode: 0666
-      delegate_to: localhost
+      delegate_to: "{{ crc_controller_host }}"
       notify:
         - "Reload NetworkManager"
 
@@ -147,7 +203,7 @@
         owner: root
         group: root
         mode: 0666
-      delegate_to: localhost
+      delegate_to: "{{ crc_controller_host }}"
       notify:
         - "Restart DNSMasq"
 
@@ -165,6 +221,5 @@
         state: reloaded
 
   when:
-    - type is defined
-    - type == "Install"
     - state is defined
+    - type == "Install"

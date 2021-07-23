@@ -24,7 +24,7 @@
 
 - name: "Install DNSmasq"
   include_tasks:
-    file: tasks/server/remote/dnsmasq/install.yml
+    file: tasks/server/remote/dnsmasq/main.yml
     apply:
       tags:
         - dnsmasq
