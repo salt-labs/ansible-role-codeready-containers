@@ -154,7 +154,7 @@
     - state is defined
     - type == 'Install'
 
-- name: "HAProxy: Configure HAProxy"
+- name: "HAProxy: Configure HAProxy configs"
   block:
 
     - name: "Configure HAProxy"
@@ -163,7 +163,6 @@
         dest: /etc/haproxy/haproxy.cfg
         owner: root
         group: root
-        state: "{{ state }}"
       notify:
         - "Reload HAProxy"
 
@@ -174,8 +173,27 @@
         enabled: True
       when:
         - not ansible_check_mode
-        - type = 'Install'
 
   when:
-    - type is defined
     - state is defined
+    - type == 'Install'
+
+- name: "HAProxy: Remove HAProxy configs"
+  block:
+
+    - name: "Configure HAProxy"
+      file:
+        dest: /etc/haproxy/haproxy.cfg
+        state: absent
+
+    - name: "Start HAProxy"
+      service:
+        name: haproxy
+        state: started
+        enabled: True
+      when:
+        - not ansible_check_mode
+
+  when:
+    - state is defined
+    - type == 'Remove'
