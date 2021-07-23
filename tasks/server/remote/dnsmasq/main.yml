@@ -144,7 +144,7 @@
 
     - name: "{{ type }} NetworkManager dnsmasq.d (CRC Server)"
       file:
-        state: "{{ directory if state == 'present' else 'absent' }}"
+        state: "{{ 'directory' if state == 'present' else 'absent' }}"
         path: /etc/NetworkManager/dnsmasq.d
         recurse: "{{ true if state == 'present' else omit }}"
         owner: root
@@ -152,7 +152,7 @@
 
     - name: "{{ type }} NetworkManager dnsmasq.d (CRC Client)"
       file:
-        state: "{{ directory if state == 'present' else 'absent' }}"
+        state: "{{ 'directory' if state == 'present' else 'absent' }}"
         path: /etc/NetworkManager/dnsmasq.d
         recurse: "{{ true if state == 'present' else omit }}"
         owner: root
