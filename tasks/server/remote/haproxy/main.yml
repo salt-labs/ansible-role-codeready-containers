@@ -95,8 +95,8 @@
         port: 5000/tcp
         permanent: True
         state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
-        notify:
-          - "Reload Firewalld"
+      notify:
+        - "Reload Firewalld"
 
     - name: "{{ type }} SELinux Port definition for TCP port 6443"
       community.general.seport:
