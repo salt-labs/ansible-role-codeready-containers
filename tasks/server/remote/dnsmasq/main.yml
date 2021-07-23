@@ -56,7 +56,7 @@
         verb: "Close"
       when:
         - type == "Remove"
-        - state is define
+        - state is defined
 
     - name: "{{ type }} TCP Port 53 (DNS)"
       ansible.posix.firewalld:
