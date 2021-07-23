@@ -79,8 +79,8 @@
         port: 53/tcp
         permanent: True
         state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
-        notify:
-          - "Reload Firewalld"
+      notify:
+        - "Reload Firewalld"
 
     - name: "{{ type }} UDP Port 53 (DNS)"
       ansible.posix.firewalld:
