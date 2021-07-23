@@ -25,6 +25,7 @@ galaxy_info:
       - "32"
       - "33"
       - "34"
+      - "35"
 
   galaxy_tags:
     - codeready
@@ -32,4 +33,6 @@ galaxy_info:
     - containers
     - ansible-tower
 
+# ansible-galaxy install -r collections/requirements.yml
+# ansible-galaxy install -r roles/requirements.yml
 dependencies: []
