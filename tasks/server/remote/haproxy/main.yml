@@ -186,14 +186,6 @@
         dest: /etc/haproxy/haproxy.cfg
         state: absent
 
-    - name: "Start HAProxy"
-      service:
-        name: haproxy
-        state: started
-        enabled: True
-      when:
-        - not ansible_check_mode
-
   when:
     - state is defined
     - type == 'Remove'
