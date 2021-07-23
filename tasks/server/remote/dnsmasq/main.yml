@@ -146,15 +146,15 @@
       file:
         state: "{{ directory if state == 'present' else 'absent' }}"
         path: /etc/NetworkManager/dnsmasq.d
-        recurse: True
+        recurse: "{{ true if state == 'present' else omit }}"
         owner: root
         group: root
 
     - name: "{{ type }} NetworkManager dnsmasq.d (CRC Client)"
       file:
-        state: "{{ directory ifstate == 'present' else 'absent' }}"
+        state: "{{ directory if state == 'present' else 'absent' }}"
         path: /etc/NetworkManager/dnsmasq.d
-        recurse: True
+        recurse: "{{ true if state == 'present' else omit }}"
         owner: root
         group: root
       delegate_to: "{{ crc_controller_host }}"
