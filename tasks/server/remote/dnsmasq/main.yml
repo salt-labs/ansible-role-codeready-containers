@@ -87,8 +87,8 @@
         port: 53/udp
         permanent: True
         state: "{{ 'enabled' if state == 'present' else 'disabled' }}"
-        notify:
-          - "Reload Firewalld"
+      notify:
+        - "Reload Firewalld"
 
   when:
     - type is defined
