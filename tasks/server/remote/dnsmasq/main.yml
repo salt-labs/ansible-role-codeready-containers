@@ -208,11 +208,6 @@
       notify:
         - "Reload NetworkManager"
 
-    - name: Reload Firewalld
-      service:
-        name: firewalld
-        state: reloaded
-
   when:
     - state is defined
     - type == "Install"

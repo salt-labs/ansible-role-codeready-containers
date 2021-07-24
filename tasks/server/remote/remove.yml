@@ -37,3 +37,11 @@
   tags:
     - dnsmasq
     - remove
+
+- name: Restart NetworkManager
+  systemd:
+    name: NetworkManager
+    state: restarted
+  when:
+    - not ansible_check_mode
+    - ( crc_remote_haproxy | bool ) or ( crc_remote_dnsmasq | bool )

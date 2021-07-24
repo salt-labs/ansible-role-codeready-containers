@@ -21,7 +21,6 @@
     - haproxy
     - install
 
-
 - name: "Install DNSmasq"
   include_tasks:
     file: tasks/server/remote/dnsmasq/main.yml
@@ -38,3 +37,11 @@
   tags:
     - dnsmasq
     - install
+
+- name: Restart NetworkManager
+  systemd:
+    name: NetworkManager
+    state: restarted
+  when:
+    - not ansible_check_mode
+    - ( crc_remote_haproxy | bool ) or ( crc_remote_dnsmasq | bool )
