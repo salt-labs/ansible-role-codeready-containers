@@ -75,6 +75,8 @@
         reload: True
         setype: dns_port_t
         state: "{{ state }}"
+      when:
+        - type == "Install"
 
     - name: "{{ type }} SELinux Port definition for UDP port 53"
       community.general.seport:
@@ -83,6 +85,8 @@
         reload: True
         setype: dns_port_t
         state: "{{ state }}"
+      when:
+        - type == "Install"
 
   when:
     - type is defined
