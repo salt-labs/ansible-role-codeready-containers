@@ -23,12 +23,6 @@
       when:
         - type == 'Install'
 
-    - name: "Remove DNSMasq package in favour of NetworkManager plugin"
-      package:
-        name:
-          - dnsmasq
-        state: "absent"
-
   when:
     - type is defined
     - state is defined
