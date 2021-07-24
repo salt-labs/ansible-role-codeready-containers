@@ -73,7 +73,7 @@
         ports: 53
         proto: tcp
         reload: True
-        setype: http_port_t
+        setype: dns_port_t
         state: "{{ state }}"
 
     - name: "{{ type }} SELinux Port definition for UDP port 53"
@@ -81,7 +81,7 @@
         ports: 53
         proto: udp
         reload: True
-        setype: http_port_t
+        setype: dns_port_t
         state: "{{ state }}"
 
   when:

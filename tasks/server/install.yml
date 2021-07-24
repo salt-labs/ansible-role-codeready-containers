@@ -260,7 +260,7 @@
       become: False
       become_user: "{{ crc_server_user_crc }}"
       changed_when: False
-      ignore_errors: True # starting CRC can be like rolling a dice.
+      ignore_errors: True # starting CRC can be like rolling a dice sometimes.
       timeout: 900
       when:
         - not ansible_check_mode
