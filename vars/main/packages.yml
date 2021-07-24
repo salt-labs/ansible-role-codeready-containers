@@ -20,7 +20,6 @@ _crc_packages_prereq:
     - libvirt
     - libvirt-daemon
     - libvirt-daemon-kvm
-    - libvirt-daemon-qemu
     - NetworkManager
     - qemu-kvm
   CentOS_7: []

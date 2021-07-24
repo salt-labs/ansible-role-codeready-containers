@@ -34,8 +34,8 @@ crc_server_pull_secret_path: "/home/{{ crc_server_user_crc }}/.crc/pull-secret.j
 
 # User configurable release details
 
-crc_server_release_version: "1.28.0"
-crc_server_release_sha: "26c2ef84204233159e3cd33665e5b5fc7a169f88a884f5e50865b4b0a15520fa"
+crc_server_release_version: "1.29.1"
+crc_server_release_sha: "659046b3e478ef89563babef59c1cacdefe91ed32e844bac4504dba68e4a9f88"
 crc_server_release_url: "https://mirror.openshift.com/pub/openshift-v4/clients/crc"
 crc_server_release_name: crc-linux-{{ arch }}.tar.xz
 
