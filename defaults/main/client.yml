@@ -14,8 +14,8 @@ crc_client_remove: False
 
 # User configurable release details
 
-crc_client_release: "4.8.2"
-crc_client_release_version: "4.8.2"
-crc_client_release_sha: "756b3d1c8bb675b92f112525cc1d2253952b32ba7e5c71dd1b7a4895bc8511e9"
+crc_client_release: "4.8.4"
+crc_client_release_version: "4.8.4"
+crc_client_release_sha: "1b2c7a89dafefd7054921f46a315458d1fd7078c7d09563633d56a952c9c6fce"
 crc_client_release_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp"
 crc_client_release_name: "openshift-client-linux-{{ crc_client_release_version }}.tar.gz"
