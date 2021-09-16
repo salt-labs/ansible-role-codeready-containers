@@ -41,42 +41,44 @@ Usage Scenarios
 | Remove CodeReady Containers and perform a fresh Install | |
 
 **Start a deployment**
-```
+
+```bash
 ansible-playbook  -i inventory deploy-crc.yml  -K
 ```
 
 **Setup crc and start deployment**
-```
+
+```bash
 ansible-playbook  -i inventory deploy-crc.yml --tags setup_crc,start_crc_deployment  -K
 ```
 
 **Download and install CRC**
-```
+
+```bash
 ansible-playbook  -i inventory deploy-crc.yml --tags download_crc,extract_crc  -K
 ```
 
 **Configure OpenShift cli**
-```
+
+```bash
 ansible-playbook  -i inventory deploy-crc.yml --tags configure_oc_cli -K
 ```
 
 **Configure HAPROXY**
-```
+
+```bash
 ansible-playbook  -i inventory deploy-crc.yml --tags configure_ha_proxy  -K
 ```
 
 **Configure dnsmasq**
-```
+
+```bash
 ansible-playbook  -i inventory deploy-crc.yml --tags configure_dnsmaq  -K
 ```
 
-**Get crc url and login info**
-```
-ansible-playbook  -i inventory deploy-crc.yml --tags get_codeready_info
-```
-
 **Delete deployment**
-```
+
+```bash
 ansible-playbook  -i inventory deploy-crc.yml --extra-vars "delete_crc_deployment=true" -K
 ```
 
