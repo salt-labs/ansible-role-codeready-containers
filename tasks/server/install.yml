@@ -370,6 +370,13 @@
       when:
         - crc_remote | bool
 
+    # TODO: Better way to handle this.
+    # There seems to be a race condition where authentication happens before the developer user exists
+    # with the expected passwode and results in permission denied error.
+    - name: "Wait for Developer user to be created"
+      pause:
+        minutes: 10
+
     - name: "Login to OpenShift as CRC Developer"
       command:
         argv:
