@@ -45,7 +45,7 @@
           - "json"
       register: crc_status
       become: True
-      become_user: linadmin
+      become_user: "{{ crc_server_user_crc }}"
       delay: 60
       retries: 10
       ignore_errors: False

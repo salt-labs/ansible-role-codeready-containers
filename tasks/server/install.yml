@@ -1,7 +1,7 @@
 ---
 #########################
 # Install
-########################
+#########################
 
 - name: "CRC Server Installation Tasks"
   block:
@@ -105,17 +105,6 @@
         - not ansible_check_mode
         - crc_server_release_download is changed
 
-    #########################
-    # START WORKAROUND
-    #########################
-
-    # TODO:
-    #   * Determine libvirt package versions affected by bug and pin version
-    #   * Remove workarounds
-    # LINKS:
-    #   * https://bugzilla.redhat.com/show_bug.cgi?id=1924218
-    #   * https://bugzilla.redhat.com/show_bug.cgi?id=1940791
-
     - name: "Ensure libvirtd is running"
       systemd:
         name: libvirtd
@@ -125,7 +114,7 @@
       when:
         - not ansible_check_mode
 
-    - name: Set libvirtdd status
+    - name: Set libvirtd status
       set_fact:
         libvirtd_status: "{{ libvirtd_status_systemd.state | default('UNKNOWN'), true }}"
 
@@ -136,10 +125,6 @@
       when:
         - "'started' not in libvirtd_status"
         - not ansible_check_mode
-
-    #########################
-    # END WORKAROUND
-    #########################
 
     - name: "Copy CRC {{ family }} binary"
       copy:
@@ -247,9 +232,6 @@
       when:
         - not ansible_check_mode
 
-    # TODO: Fix correct kube-apiserver startup on attempt 1
-    # https://github.com/code-ready/crc/issues/2484
-
     - name: "Start CRC server cluster for {{ crc_server_user_crc }}"
       command:
         argv:
@@ -260,22 +242,44 @@
       become: False
       become_user: "{{ crc_server_user_crc }}"
       changed_when: False
-      ignore_errors: True # starting CRC can be like rolling a dice sometimes.
+      ignore_errors: True
+      timeout: 900
+      register: crc_started
+      when:
+        - not ansible_check_mode
+
+    - name: "Re-start CRC server cluster for {{ crc_server_user_crc }}"
+      command:
+        argv:
+          - crc
+          - stop
+          - --log-level
+          - "{{ crc_server_log_level }}"
+          - "&&"
+          - crc
+          - start
+          - --log-level
+          - "{{ crc_server_log_level }}"
+      become: False
+      become_user: "{{ crc_server_user_crc }}"
+      changed_when: False
+      ignore_errors: True
       timeout: 900
       when:
         - not ansible_check_mode
+        - crc_started.rc != 0
 
     - name: "Wait for CodeReady Containers API Port"
       wait_for:
         host: api.crc.testing
         msg: "CodeReady Containers has failed to start!"
         port: 6443
-      retries: 10
+      retries: 15
       delay: 60
       when:
         - not ansible_check_mode
 
-    - name: "Wait for CodeReady Containers Ready"
+    - name: "Wait for CodeReady Containers Running"
       ansible.builtin.command:
         argv:
           - "crc"
@@ -287,9 +291,9 @@
         json_result: "Running"
       register: crc_status
       become: True
-      become_user: linadmin
+      become_user: "{{ crc_server_user_crc }}"
       delay: 60
-      retries: 10
+      retries: 15
       until:
         - crc_status.stdout | from_json | json_query(json_query) == json_result
       when:
@@ -372,7 +376,7 @@
 
     # TODO: Better way to handle this.
     # There seems to be a race condition where authentication happens before the developer user exists
-    # with the expected passwode and results in permission denied error.
+    # with the expected password and results in permission denied error.
     - name: "Wait for Developer user to be created"
       pause:
         minutes: 10
